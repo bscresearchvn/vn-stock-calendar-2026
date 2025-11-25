@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch Planner 2026 (A5: Lịch to - Note nhỏ)</title>
+    <title>Lịch Planner 2026 (Full Events)</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -88,91 +88,495 @@
         const PrintIcon = ({ size = 18, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>);
         const ReturnIcon = ({ size = 18, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 10 4 15 9 20"></polyline><path d="M20 4v7a4 4 0 0 1-4 4H4"></path></svg>);
 
-        // --- Data Events (Giữ nguyên) ---
+        // --- Data Events (CẬP NHẬT MỚI TỪ CSV) ---
         const rawEvents = [
-            { date: "2026-01-01", title: "Tết Dương Lịch", type: "holiday", desc: "Nghỉ lễ toàn quốc" },
-            { date: "2026-01-06", title: "GSO: KT-XH", type: "macro", desc: "Tổng cục Thống kê công bố số liệu KT-XH" },
-            { date: "2026-01-15", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Hợp đồng tương lai VN30" },
-            { date: "2026-01-19", title: "ETF Nội: Update", type: "etf", desc: "Cập nhật: VNDiamond, VNFIN LEAD..." },
-            { date: "2026-01-21", title: "ETF Nội: Review", type: "etf", desc: "Xem xét định kỳ: HOSE, VN50..." },
-            { date: "2026-01-27", title: "FED họp", type: "macro", desc: "Họp chính sách tiền tệ (Ngày 1)" },
-            { date: "2026-01-28", title: "FED Lãi suất", type: "macro", desc: "Họp chính sách tiền tệ (Công bố KQ)" },
-            { date: "2026-02-02", title: "ETF: Hiệu lực", type: "etf", desc: "Ngày hiệu lực: HOSE, VN50, VNFIN LEAD" },
-            { date: "2026-02-04", title: "ECB họp", type: "macro", desc: "Ngân hàng TW Châu Âu họp" },
-            { date: "2026-02-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 2" },
-            { date: "2026-02-16", title: "Tết Nguyên Đán", type: "holiday", desc: "Nghỉ Tết Âm lịch (Dự kiến 29 Tết)" },
-            { date: "2026-02-17", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 1 Tết Bính Ngọ" },
-            { date: "2026-02-18", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 2 Tết" },
-            { date: "2026-02-19", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 3 Tết" },
-            { date: "2026-02-20", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 4 Tết" },
-            { date: "2026-02-19", title: "Đáo hạn PS (Dời)", type: "futures", desc: "Trùng Tết, sẽ dời ngày đáo hạn" },
-            { date: "2026-02-27", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE & MarketVector" },
-            { date: "2026-02-27", title: "FTSE: Danh mục", type: "etf", desc: "FTSE công bố danh mục mới" },
-            { date: "2026-03-05", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
-            { date: "2026-03-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 3" },
-            { date: "2026-03-13", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố danh mục" },
-            { date: "2026-03-18", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
-            { date: "2026-03-19", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 3" },
-            { date: "2026-03-23", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại (VNM, FTSE)" },
-            { date: "2026-03-30", title: "FTSE: Nâng hạng?", type: "special", desc: "Interim Review: Công bố kế hoạch nâng hạng" },
-            { date: "2026-03-31", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 2" },
-            { date: "2026-04-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 4" },
-            { date: "2026-04-16", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 4" },
-            { date: "2026-04-16", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
-            { date: "2026-04-20", title: "Diamond: Review", type: "etf", desc: "VNDiamond, VNX Review" },
-            { date: "2026-04-27", title: "Nghỉ Giỗ Tổ", type: "holiday", desc: "Nghỉ bù Giỗ Tổ Hùng Vương" },
-            { date: "2026-04-29", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
-            { date: "2026-04-30", title: "Nghỉ Lễ 30/4", type: "holiday", desc: "Giải phóng Miền Nam" },
-            { date: "2026-05-01", title: "Nghỉ Lễ 1/5", type: "holiday", desc: "Quốc tế Lao động" },
-            { date: "2026-05-04", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực VNDiamond, VNX" },
-            { date: "2026-05-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 5" },
-            { date: "2026-05-21", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 5" },
-            { date: "2026-05-29", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE & MarketVector" },
-            { date: "2026-06-04", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
-            { date: "2026-06-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 6" },
-            { date: "2026-06-12", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố danh mục" },
-            { date: "2026-06-17", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
-            { date: "2026-06-18", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 6" },
-            { date: "2026-06-22", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại" },
-            { date: "2026-06-30", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 3" },
-            { date: "2026-07-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 7" },
-            { date: "2026-07-15", title: "HOSE: Review", type: "etf", desc: "Xem xét: VN30, VNFinLead" },
-            { date: "2026-07-16", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 7" },
-            { date: "2026-07-16", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
-            { date: "2026-07-29", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
-            { date: "2026-08-03", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực HOSE, VN30" },
-            { date: "2026-08-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 8" },
-            { date: "2026-08-20", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 8" },
-            { date: "2026-08-28", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE" },
-            { date: "2026-08-31", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu MarketVector" },
-            { date: "2026-09-02", title: "Nghỉ Lễ 2/9", type: "holiday", desc: "Quốc Khánh (Ngày 1)" },
-            { date: "2026-09-03", title: "Nghỉ Lễ 2/9", type: "holiday", desc: "Quốc Khánh (Ngày 2)" },
-            { date: "2026-09-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 9" },
-            { date: "2026-09-10", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
-            { date: "2026-09-11", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố" },
-            { date: "2026-09-16", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
-            { date: "2026-09-17", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 9" },
-            { date: "2026-09-21", title: "FTSE: NÂNG HẠNG", type: "special", desc: "Chính thức nâng hạng Secondary Emerging" },
-            { date: "2026-09-21", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại" },
-            { date: "2026-09-30", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 4" },
-            { date: "2026-10-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 10" },
-            { date: "2026-10-15", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 10" },
-            { date: "2026-10-19", title: "Diamond: Review", type: "etf", desc: "VNDiamond, VNX Review" },
-            { date: "2026-10-28", title: "FED họp", type: "macro", desc: "FED họp chính sách" },
-            { date: "2026-10-29", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
-            { date: "2026-11-02", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực VNDiamond" },
-            { date: "2026-11-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 11" },
-            { date: "2026-11-19", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 11" },
-            { date: "2026-11-27", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE" },
-            { date: "2026-11-30", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu MarketVector" },
-            { date: "2026-12-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 12" },
-            { date: "2026-12-09", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất cuối năm" },
-            { date: "2026-12-10", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
-            { date: "2026-12-11", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố danh mục" },
-            { date: "2026-12-17", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 12" },
-            { date: "2026-12-21", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại" },
-            { date: "2026-12-31", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 1/2027" },
-        ];
+    {
+        "date": "2026-01-01",
+        "title": "Tết Dương Lịch 2026",
+        "type": "holiday",
+        "desc": "Nghỉ lễ toàn quốc"
+    },
+    {
+        "date": "2026-01-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-01-15",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 1"
+    },
+    {
+        "date": "2026-01-19",
+        "title": "ETF: (A) Cập nhật: VNDiamond; VNFIN LEAD; VNX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-01-21",
+        "title": "ETF: (A) Xem xét: HOSE; VNFIN LEAD; VN50",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-01-27",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-02-02",
+        "title": "ETF: (E) Hiệu lực: HOSE; VNFIN LEAD; VN50",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-02-04",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-02-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-02-16",
+        "title": "Tết Nguyên Đán (Dự kiến)",
+        "type": "holiday",
+        "desc": "Dự kiến nghỉ 7 ngày. Thị trường CK đóng cửa."
+    },
+    {
+        "date": "2026-02-19",
+        "title": "Futures VN30 đáo hạn (Dời)",
+        "type": "futures",
+        "desc": "Trùng lịch nghỉ Tết (Mùng 3). Ngày đáo hạn sẽ được dời lại."
+    },
+    {
+        "date": "2026-02-27",
+        "title": "ETF Ngoại: Cut-off FTSE & MarketVector",
+        "type": "etf_cut",
+        "desc": "Nguồn: Quy tắc ETF Ngoại (Thứ 6 cuối tháng 2)"
+    },
+    {
+        "date": "2026-02-27",
+        "title": "ETF: (A) Danh mục mới: FTSE GEIS",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-03-05",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-03-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-03-13",
+        "title": "ETF: (A) Danh mục mới: MarketVector; STOXX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-03-17",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-03-19",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 3"
+    },
+    {
+        "date": "2026-03-23",
+        "title": "ETF: (E) Hiệu lực: MarketVector; FTSE30; STOXX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-03-30",
+        "title": "FTSE: Kế hoạch nâng hạng (Interim Review)",
+        "type": "special",
+        "desc": "Sự kiện đặc biệt: Nâng hạng thị trường"
+    },
+    {
+        "date": "2026-03-31",
+        "title": "ETF Nội: Cut-off Quý 2 (Tất cả chỉ số)",
+        "type": "etf_cut",
+        "desc": "Nguồn: ETF Nội (Quan trọng cho dự báo)"
+    },
+    {
+        "date": "2026-04-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-04-15",
+        "title": "ETF: (A) Cập nhật thông tin: VNX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội (Chi tiết)"
+    },
+    {
+        "date": "2026-04-16",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-04-16",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 4"
+    },
+    {
+        "date": "2026-04-20",
+        "title": "ETF: (A) Xem xét: VNDiamond; VNX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-04-26",
+        "title": "Giỗ Tổ Hùng Vương (10/3 ÂL)",
+        "type": "holiday",
+        "desc": "Nghỉ bù vào Thứ 2 (27/4)"
+    },
+    {
+        "date": "2026-04-28",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-04-30",
+        "title": "Nghỉ Lễ 30/4 và 1/5",
+        "type": "holiday",
+        "desc": "Giải phóng MN & Quốc tế Lao động"
+    },
+    {
+        "date": "2026-05-04",
+        "title": "ETF: (E) Hiệu lực: VNDiamond; VNX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-05-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-05-21",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 5"
+    },
+    {
+        "date": "2026-05-29",
+        "title": "ETF Ngoại: Cut-off FTSE & MarketVector",
+        "type": "etf_cut",
+        "desc": "Nguồn: Quy tắc ETF Ngoại"
+    },
+    {
+        "date": "2026-05-29",
+        "title": "ETF: (A) Danh mục mới: FTSE GEIS",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-06-04",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-06-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-06-12",
+        "title": "ETF: (A) Danh mục mới: MarketVector",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-06-16",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-06-18",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 6"
+    },
+    {
+        "date": "2026-06-22",
+        "title": "ETF: (E) Hiệu lực: MarketVector; FTSE GEIS",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-06-30",
+        "title": "ETF Nội: Cut-off Quý 3 (Tất cả chỉ số)",
+        "type": "etf_cut",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-07-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-07-15",
+        "title": "ETF: (A) Xem xét: HOSE; VNFIN LEAD; VN50",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-07-16",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-07-16",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 7"
+    },
+    {
+        "date": "2026-07-20",
+        "title": "ETF: (A) Xem xét: VNFIN LEAD (Cập nhật)",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-07-28",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-08-03",
+        "title": "ETF: (E) Hiệu lực: HOSE; VNFIN LEAD; VN50",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-08-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-08-20",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 8"
+    },
+    {
+        "date": "2026-08-28",
+        "title": "ETF Ngoại: Cut-off FTSE",
+        "type": "etf_cut",
+        "desc": "Nguồn: Quy tắc ETF Ngoại"
+    },
+    {
+        "date": "2026-08-28",
+        "title": "ETF: (A) Danh mục mới: FTSE GEIS",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-08-31",
+        "title": "ETF Ngoại: Cut-off MarketVector",
+        "type": "etf_cut",
+        "desc": "Nguồn: Quy tắc ETF Ngoại"
+    },
+    {
+        "date": "2026-09-02",
+        "title": "Quốc Khánh 2/9",
+        "type": "holiday",
+        "desc": "Dự kiến nghỉ 2 ngày"
+    },
+    {
+        "date": "2026-09-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-09-10",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-09-11",
+        "title": "ETF: (A) Danh mục mới: MarketVector; STOXX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-09-15",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-09-17",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 9"
+    },
+    {
+        "date": "2026-09-21",
+        "title": "ETF: (E) Hiệu lực: MarketVector; FTSE30; STOXX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-09-21",
+        "title": "FTSE: CHÍNH THỨC NÂNG HẠNG (Dự kiến)",
+        "type": "special",
+        "desc": "Sự kiện đặc biệt: Ngày hiệu lực nâng hạng"
+    },
+    {
+        "date": "2026-09-30",
+        "title": "ETF Nội: Cut-off Quý 4 (Tất cả chỉ số)",
+        "type": "etf_cut",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-10-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-10-15",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 10"
+    },
+    {
+        "date": "2026-10-19",
+        "title": "ETF: (A) Xem xét: VNDiamond; VNX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-10-21",
+        "title": "ETF: (A) Cập nhật: HOSE; VN50",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-10-27",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-10-28",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-11-02",
+        "title": "ETF: (E) Hiệu lực: VNDiamond; VNX",
+        "type": "etf",
+        "desc": "Nguồn: ETF Nội"
+    },
+    {
+        "date": "2026-11-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-11-19",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 11"
+    },
+    {
+        "date": "2026-11-27",
+        "title": "ETF Ngoại: Cut-off FTSE",
+        "type": "etf_cut",
+        "desc": "Nguồn: Quy tắc ETF Ngoại"
+    },
+    {
+        "date": "2026-11-27",
+        "title": "ETF: (A) Danh mục mới: FTSE GEIS",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-11-30",
+        "title": "ETF Ngoại: Cut-off MarketVector",
+        "type": "etf_cut",
+        "desc": "Nguồn: Quy tắc ETF Ngoại"
+    },
+    {
+        "date": "2026-12-06",
+        "title": "GSO: Báo cáo tình hình kinh tế - xã hội",
+        "type": "macro",
+        "desc": "Nguồn: Tổng cục Thống kê"
+    },
+    {
+        "date": "2026-12-08",
+        "title": "FED: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: FED"
+    },
+    {
+        "date": "2026-12-10",
+        "title": "ECB: Họp Chính sách tiền tệ",
+        "type": "macro",
+        "desc": "Nguồn: ECB"
+    },
+    {
+        "date": "2026-12-11",
+        "title": "ETF: (A) Danh mục mới: MarketVector",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-12-17",
+        "title": "Futures VN30 đáo hạn",
+        "type": "futures",
+        "desc": "Đáo hạn Phái sinh Tháng 12"
+    },
+    {
+        "date": "2026-12-21",
+        "title": "ETF: (E) Hiệu lực: MarketVector; FTSE GEIS",
+        "type": "etf",
+        "desc": "Nguồn: ETF Ngoại"
+    },
+    {
+        "date": "2026-12-31",
+        "title": "ETF Nội: Cut-off Quý 1/2027",
+        "type": "etf_cut",
+        "desc": "Nguồn: ETF Nội"
+    }
+];
 
         // --- Logic Âm Lịch ---
         const getLunarDate = (dd, mm, yyyy) => {
