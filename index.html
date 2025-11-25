@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch Planner 2026 (Split View)</title>
+    <title>Lịch Planner 2026 (A5 Note-Left)</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -14,53 +14,58 @@
 
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
+        /* CSS cho Web View (Giữ nguyên) */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
-        .calendar-cell { background-color: white; min-height: 80px; padding: 4px; position: relative; transition: all 0.2s; }
+        .calendar-cell { background-color: white; min-height: 80px; padding: 2px; position: relative; transition: all 0.2s; }
         .font-hand { font-family: 'Patrick Hand', cursive; }
-        
-        @media screen {
-            .calendar-cell:hover { background-color: #f8fafc; z-index: 10; }
-        }
-        
-        .event-chip { font-size: 9px; padding: 1px 3px; border-radius: 3px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; font-weight: 500; }
-        .lunar-date { font-size: 9px; color: #94a3b8; position: absolute; bottom: 2px; right: 4px; }
-        
+        .event-chip { font-size: 10px; padding: 2px 4px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; font-weight: 500; }
+        .lunar-date { font-size: 10px; color: #94a3b8; position: absolute; bottom: 4px; right: 6px; }
         .paper-stack { background-color: #fefce8; box-shadow: 0 1px 1px rgba(0,0,0,0.15), 0 10px 0 -5px #fefce8, 0 10px 1px -4px rgba(0,0,0,0.15); }
-
         .todo-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #cbd5e1; font-family: 'Patrick Hand', cursive; font-size: 1.1rem; color: #334155; }
         .todo-checkbox { appearance: none; width: 18px; height: 18px; border: 2px solid #94a3b8; border-radius: 4px; cursor: pointer; position: relative; flex-shrink: 0; background-color: white; }
         .todo-checkbox:checked { background-color: #3b82f6; border-color: #3b82f6; }
         .todo-checkbox:checked::after { content: '✓'; position: absolute; color: white; font-size: 12px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .todo-input { flex-grow: 1; background: transparent; border: none; outline: none; color: #334155; }
         .todo-input.completed { text-decoration: line-through; color: #94a3b8; }
-        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
-        /* TÙY CHỈNH IN ẤN (Split View) */
+        /* --- TÙY CHỈNH IN A5 (NOTE TRÁI - LỊCH PHẢI) --- */
         @media print {
-            @page { size: landscape; margin: 0.5cm; } /* Giảm lề để tối đa diện tích */
+            @page { 
+                size: A5 landscape; 
+                margin: 5mm; 
+            } 
             body { background-color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none !important; }
             
-            /* Một tháng là một trang duy nhất */
             .print-page-break { 
                 page-break-after: always; 
-                height: 95vh; /* Chiếm gần trọn chiều cao trang */
+                height: 138mm; 
                 width: 100%;
                 display: flex; 
-                flex-direction: row; /* Xếp ngang: Trái Lịch - Phải Note */
-                gap: 2cm; /* Khoảng cách giữa 2 phần */
+                flex-direction: row; /* Xếp ngang */
+                gap: 5mm; 
             }
             
-            .calendar-cell { min-height: 60px; border: 1px solid #e2e8f0 !important; } /* Ô lịch nhỏ lại chút để vừa trang */
+            /* Căn chỉnh ô lịch cho A5 */
+            .calendar-cell { 
+                min-height: 15mm !important; 
+                padding: 1px !important;
+                border: 0.5px solid #cbd5e1 !important;
+            }
             .calendar-grid { gap: 0; border: 1px solid #94a3b8; }
+            
+            /* Font chữ nhỏ cho A5 */
+            .text-4xl { font-size: 1.5rem !important; } 
+            .text-xl { font-size: 1rem !important; }
+            .event-chip { font-size: 7px !important; padding: 0 2px !important; height: 12px; line-height: 12px; }
+            .lunar-date { font-size: 6px !important; bottom: 1px !important; right: 2px !important; }
+            
             .shadow-lg, .shadow-md { box-shadow: none !important; }
             .bg-slate-50 { background-color: white !important; }
             .todo-actions { display: none; } 
-            
-            /* Ẩn thanh cuộn */
             ::-webkit-scrollbar { display: none; }
         }
     </style>
@@ -297,64 +302,48 @@
             case 'etf': return 'bg-green-100 text-green-700 border-green-200'; case 'etf_cut': return 'bg-green-50 text-green-600 border-green-200 border-dashed'; case 'futures': return 'bg-orange-100 text-orange-700 border-orange-200';
             case 'special': return 'bg-purple-100 text-purple-700 border-purple-200 font-bold'; default: return 'bg-gray-100 text-gray-700'; } };
 
-            // Render Print View - CHẾ ĐỘ SPLIT VIEW (Nửa Lịch - Nửa Note)
+            // Render Print View - A5 LANDSCAPE (NOTE LEFT - CALENDAR RIGHT)
             if (viewMode === 'print') {
                 return (
                     <div className="bg-white min-h-screen">
                         {/* Thanh điều khiển (Không in) */}
-                        <div className="fixed top-0 left-0 right-0 bg-slate-800 text-white p-4 flex justify-between items-center z-50 no-print shadow-lg">
+                        <div className="fixed top-0 left-0 right-0 bg-slate-800 text-white p-2 flex justify-between items-center z-50 no-print shadow-lg">
                             <div>
-                                <h2 className="font-bold text-lg">Chế độ In: Split View (Nửa Lịch - Nửa Note)</h2>
-                                <p className="text-xs text-slate-300">Khổ giấy in ngang (Landscape). Tối ưu viết tay.</p>
+                                <h2 className="font-bold text-sm">Chế độ In: A5 Ngang (Note Trái - Lịch Phải)</h2>
+                                <p className="text-[10px] text-slate-300">Chọn khổ giấy in là A5. Scale 100%.</p>
                             </div>
-                            <button onClick={() => setViewMode('single')} className="bg-white text-slate-800 px-4 py-2 rounded-lg font-bold hover:bg-slate-100 flex items-center gap-2">
-                                <ReturnIcon size={18}/> Quay lại
+                            <button onClick={() => setViewMode('single')} className="bg-white text-slate-800 px-3 py-1 rounded text-xs font-bold hover:bg-slate-100 flex items-center gap-1">
+                                <ReturnIcon size={14}/> Quay lại
                             </button>
                         </div>
 
-                        <div className="pt-20 pb-10">
+                        <div className="pt-12 pb-10">
                             {[...Array(12)].map((_, i) => (
-                                <div key={i} className="print-page-break mx-auto max-w-[1200px] print:max-w-none">
-                                    {/* CỘT TRÁI: LỊCH (45%) */}
-                                    <div className="w-[45%] flex flex-col h-full border-r border-slate-200 pr-8">
-                                        <div className="flex justify-between items-end mb-4 border-b-2 border-slate-800 pb-2">
-                                            <h1 className="text-4xl font-bold text-slate-800 uppercase tracking-tighter">{monthNames[i]} <span className="text-slate-400 font-light">2026</span></h1>
-                                            <div className="text-right text-[10px] text-slate-500 font-bold">VN MARKET CALENDAR</div>
+                                <div key={i} className="print-page-break mx-auto">
+                                    {/* CỘT TRÁI: NOTE (50%) */}
+                                    <div className="w-1/2 flex flex-col h-full border-r border-slate-200 pr-2">
+                                        <h2 className="text-lg font-bold text-slate-600 mb-2 font-hand flex items-center gap-2 border-b border-slate-200 pb-1">
+                                            <EditIcon size={16}/> Kế hoạch & Ghi chú
+                                        </h2>
+                                        
+                                        <div className="flex-grow flex flex-col gap-0">
+                                            {[...Array(11)].map((_, idx) => (
+                                                <div key={idx} className="w-full h-8 border-b border-slate-300 border-dashed"></div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* CỘT PHẢI: LỊCH (50%) */}
+                                    <div className="w-1/2 flex flex-col h-full pl-2">
+                                        <div className="flex justify-between items-end mb-2 border-b border-slate-800 pb-1">
+                                            <h1 className="text-4xl font-bold text-slate-800 uppercase tracking-tighter">{monthNames[i]} <span className="text-slate-400 font-light text-xl">2026</span></h1>
+                                            <div className="text-right text-[8px] text-slate-500 font-bold">VN STOCK</div>
                                         </div>
                                         <div className="flex-grow">
                                             <CalendarGrid year={2026} month={i} events={rawEvents} />
                                         </div>
-                                        {/* Chú thích gọn */}
-                                        <div className="mt-2 flex gap-2 text-[9px] text-slate-400 flex-wrap">
-                                            <span>🔴 Lễ</span> <span>🔵 Vĩ mô</span> <span>🟢 ETF</span> <span>🟣 FTSE</span> <span>🟠 Phái sinh</span>
-                                        </div>
-                                    </div>
-
-                                    {/* CỘT PHẢI: NOTE (55%) */}
-                                    <div className="flex-grow flex flex-col h-full pl-2">
-                                        <h2 className="text-xl font-bold text-slate-600 mb-4 font-hand flex items-center gap-2 border-b border-slate-200 pb-2">
-                                            <EditIcon size={20}/> Ghi chú & Kế hoạch
-                                        </h2>
-                                        
-                                        {/* Phần Checklist nhỏ */}
-                                        <div className="mb-4">
-                                            <div className="text-xs font-bold text-slate-400 uppercase mb-2">Ưu tiên tháng này</div>
-                                            <div className="flex flex-col gap-2">
-                                                {[...Array(3)].map((_, idx) => (
-                                                    <div key={idx} className="flex gap-2 items-center">
-                                                        <div className="w-4 h-4 border border-slate-300 rounded"></div>
-                                                        <div className="h-px bg-slate-200 flex-grow"></div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Phần Dòng kẻ viết tay (Chiếm đa số) */}
-                                        <div className="flex-grow flex flex-col gap-0">
-                                            <div className="text-xs font-bold text-slate-400 uppercase mb-1">Chi tiết</div>
-                                            {[...Array(16)].map((_, idx) => (
-                                                <div key={idx} className="w-full h-8 border-b border-slate-300 border-dashed"></div>
-                                            ))}
+                                        <div className="mt-1 flex gap-2 text-[7px] text-slate-400 flex-wrap">
+                                            <span>🔴 Lễ</span> <span>🔵 Vĩ mô</span> <span>🟢 ETF</span> <span>🟣 FTSE</span>
                                         </div>
                                     </div>
                                 </div>
@@ -386,7 +375,7 @@
                         </div>
                         <div className="flex flex-col items-end gap-3 w-full md:w-auto">
                             <button onClick={() => setViewMode('print')} className="bg-slate-800 text-white px-4 py-2 rounded shadow hover:bg-slate-700 flex items-center gap-2 text-sm font-bold transition">
-                                <PrintIcon size={16}/> In Lịch (Split View)
+                                <PrintIcon size={16}/> In Lịch (Khổ A5)
                             </button>
                             <div className="flex items-center bg-white rounded-lg shadow-sm border border-slate-200 p-1">
                                 <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="p-2 hover:bg-slate-50 rounded text-slate-600"><ChevronLeft size={20}/></button>
