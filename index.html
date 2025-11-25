@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Chứng Khoán 2026 (Planner Version)</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
+        .calendar-cell { background-color: white; min-height: 100px; padding: 4px; position: relative; transition: all 0.2s; }
+        .font-hand { font-family: 'Patrick Hand', cursive; }
+        
+        @media screen {
+            .calendar-cell:hover { background-color: #f8fafc; z-index: 10; }
+        }
+        
+        .event-chip { font-size: 10px; padding: 2px 4px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; font-weight: 500; }
+        .lunar-date { font-size: 10px; color: #94a3b8; position: absolute; bottom: 4px; right: 6px; }
+        
+        .paper-stack { background-color: #fefce8; box-shadow: 0 1px 1px rgba(0,0,0,0.15), 0 10px 0 -5px #fefce8, 0 10px 1px -4px rgba(0,0,0,0.15); }
+
+        .todo-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #cbd5e1; font-family: 'Patrick Hand', cursive; font-size: 1.1rem; color: #334155; }
+        
+        .todo-checkbox { appearance: none; width: 18px; height: 18px; border: 2px solid #94a3b8; border-radius: 4px; cursor: pointer; position: relative; flex-shrink: 0; background-color: white; }
+        .todo-checkbox:checked { background-color: #3b82f6; border-color: #3b82f6; }
+        .todo-checkbox:checked::after { content: '✓'; position: absolute; color: white; font-size: 12px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        .todo-input { flex-grow: 1; background: transparent; border: none; outline: none; color: #334155; }
+        .todo-input.completed { text-decoration: line-through; color: #94a3b8; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* Tùy chỉnh riêng cho in ấn */
+        @media print {
+            @page { size: landscape; margin: 0; } /* In ngang để lịch to nhất */
+            body { background-color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-container { width: 100%; height: 100%; }
+            
+            /* Ngắt trang quan trọng */
+            .print-page-break { page-break-after: always; height: 100vh; width: 100vw; display: flex; flex-direction: column; padding: 1cm; box-sizing: border-box; }
+            
+            .calendar-cell { min-height: 80px; border: 1px solid #e2e8f0 !important; }
+            .calendar-grid { gap: 0; border: 1px solid #94a3b8; }
+            .shadow-lg, .shadow-md { box-shadow: none !important; }
+            .rotate-1 { transform: none !important; }
+            .bg-slate-50 { background-color: white !important; }
+            .todo-actions { display: none; } 
+            .todo-item { border-bottom: 1px solid #94a3b8; }
+            
+            /* Ẩn scrollbar khi in */
+            ::-webkit-scrollbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icons ---
+        const ChevronLeft = ({ size = 20, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15 18-6-6 6-6"/></svg>);
+        const ChevronRight = ({ size = 20, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>);
+        const CalendarIcon = ({ size = 20, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>);
+        const XIcon = ({ size = 20, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>);
+        const EditIcon = ({ size = 16, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>);
+        const SaveIcon = ({ size = 16, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>);
+        const TrashIcon = ({ size = 14, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>);
+        const PlusIcon = ({ size = 14, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>);
+        const PrintIcon = ({ size = 18, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>);
+        const ReturnIcon = ({ size = 18, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 10 4 15 9 20"></polyline><path d="M20 4v7a4 4 0 0 1-4 4H4"></path></svg>);
+
+        // --- Data Events ---
+        const rawEvents = [
+            { date: "2026-01-01", title: "Tết Dương Lịch", type: "holiday", desc: "Nghỉ lễ toàn quốc" },
+            { date: "2026-01-06", title: "GSO: KT-XH", type: "macro", desc: "Tổng cục Thống kê công bố số liệu KT-XH" },
+            { date: "2026-01-15", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Hợp đồng tương lai VN30" },
+            { date: "2026-01-19", title: "ETF Nội: Update", type: "etf", desc: "Cập nhật: VNDiamond, VNFIN LEAD..." },
+            { date: "2026-01-21", title: "ETF Nội: Review", type: "etf", desc: "Xem xét định kỳ: HOSE, VN50..." },
+            { date: "2026-01-27", title: "FED họp", type: "macro", desc: "Họp chính sách tiền tệ (Ngày 1)" },
+            { date: "2026-01-28", title: "FED Lãi suất", type: "macro", desc: "Họp chính sách tiền tệ (Công bố KQ)" },
+            { date: "2026-02-02", title: "ETF: Hiệu lực", type: "etf", desc: "Ngày hiệu lực: HOSE, VN50, VNFIN LEAD" },
+            { date: "2026-02-04", title: "ECB họp", type: "macro", desc: "Ngân hàng TW Châu Âu họp" },
+            { date: "2026-02-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 2" },
+            { date: "2026-02-16", title: "Tết Nguyên Đán", type: "holiday", desc: "Nghỉ Tết Âm lịch (Dự kiến 29 Tết)" },
+            { date: "2026-02-17", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 1 Tết Bính Ngọ" },
+            { date: "2026-02-18", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 2 Tết" },
+            { date: "2026-02-19", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 3 Tết" },
+            { date: "2026-02-20", title: "Tết Nguyên Đán", type: "holiday", desc: "Mùng 4 Tết" },
+            { date: "2026-02-19", title: "Đáo hạn PS (Dời)", type: "futures", desc: "Trùng Tết, sẽ dời ngày đáo hạn" },
+            { date: "2026-02-27", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE & MarketVector" },
+            { date: "2026-02-27", title: "FTSE: Danh mục", type: "etf", desc: "FTSE công bố danh mục mới" },
+            { date: "2026-03-05", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
+            { date: "2026-03-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 3" },
+            { date: "2026-03-13", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố danh mục" },
+            { date: "2026-03-18", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
+            { date: "2026-03-19", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 3" },
+            { date: "2026-03-23", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại (VNM, FTSE)" },
+            { date: "2026-03-30", title: "FTSE: Nâng hạng?", type: "special", desc: "Interim Review: Công bố kế hoạch nâng hạng" },
+            { date: "2026-03-31", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 2" },
+            { date: "2026-04-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 4" },
+            { date: "2026-04-16", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 4" },
+            { date: "2026-04-16", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
+            { date: "2026-04-20", title: "Diamond: Review", type: "etf", desc: "VNDiamond, VNX Review" },
+            { date: "2026-04-27", title: "Nghỉ Giỗ Tổ", type: "holiday", desc: "Nghỉ bù Giỗ Tổ Hùng Vương" },
+            { date: "2026-04-29", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
+            { date: "2026-04-30", title: "Nghỉ Lễ 30/4", type: "holiday", desc: "Giải phóng Miền Nam" },
+            { date: "2026-05-01", title: "Nghỉ Lễ 1/5", type: "holiday", desc: "Quốc tế Lao động" },
+            { date: "2026-05-04", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực VNDiamond, VNX" },
+            { date: "2026-05-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 5" },
+            { date: "2026-05-21", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 5" },
+            { date: "2026-05-29", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE & MarketVector" },
+            { date: "2026-06-04", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
+            { date: "2026-06-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 6" },
+            { date: "2026-06-12", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố danh mục" },
+            { date: "2026-06-17", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
+            { date: "2026-06-18", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 6" },
+            { date: "2026-06-22", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại" },
+            { date: "2026-06-30", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 3" },
+            { date: "2026-07-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 7" },
+            { date: "2026-07-15", title: "HOSE: Review", type: "etf", desc: "Xem xét: VN30, VNFinLead" },
+            { date: "2026-07-16", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 7" },
+            { date: "2026-07-16", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
+            { date: "2026-07-29", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
+            { date: "2026-08-03", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực HOSE, VN30" },
+            { date: "2026-08-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 8" },
+            { date: "2026-08-20", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 8" },
+            { date: "2026-08-28", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE" },
+            { date: "2026-08-31", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu MarketVector" },
+            { date: "2026-09-02", title: "Nghỉ Lễ 2/9", type: "holiday", desc: "Quốc Khánh (Ngày 1)" },
+            { date: "2026-09-03", title: "Nghỉ Lễ 2/9", type: "holiday", desc: "Quốc Khánh (Ngày 2)" },
+            { date: "2026-09-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 9" },
+            { date: "2026-09-10", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
+            { date: "2026-09-11", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố" },
+            { date: "2026-09-16", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất" },
+            { date: "2026-09-17", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 9" },
+            { date: "2026-09-21", title: "FTSE: NÂNG HẠNG", type: "special", desc: "Chính thức nâng hạng Secondary Emerging" },
+            { date: "2026-09-21", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại" },
+            { date: "2026-09-30", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 4" },
+            { date: "2026-10-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 10" },
+            { date: "2026-10-15", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 10" },
+            { date: "2026-10-19", title: "Diamond: Review", type: "etf", desc: "VNDiamond, VNX Review" },
+            { date: "2026-10-28", title: "FED họp", type: "macro", desc: "FED họp chính sách" },
+            { date: "2026-10-29", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
+            { date: "2026-11-02", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực VNDiamond" },
+            { date: "2026-11-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 11" },
+            { date: "2026-11-19", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 11" },
+            { date: "2026-11-27", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu FTSE" },
+            { date: "2026-11-30", title: "ETF Ngoại: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu MarketVector" },
+            { date: "2026-12-06", title: "GSO: KT-XH", type: "macro", desc: "Số liệu KT-XH Tháng 12" },
+            { date: "2026-12-09", title: "FED Lãi suất", type: "macro", desc: "FED công bố lãi suất cuối năm" },
+            { date: "2026-12-10", title: "ECB họp", type: "macro", desc: "ECB họp chính sách" },
+            { date: "2026-12-11", title: "VNM: Danh mục", type: "etf", desc: "MarketVector công bố danh mục" },
+            { date: "2026-12-17", title: "Đáo hạn PS", type: "futures", desc: "Đáo hạn Phái sinh Tháng 12" },
+            { date: "2026-12-21", title: "ETF: Hiệu lực", type: "etf", desc: "Hiệu lực ETF Ngoại" },
+            { date: "2026-12-31", title: "ETF Nội: Cut-off", type: "etf_cut", desc: "Chốt dữ liệu Quý 1/2027" },
+        ];
+
+        // --- Logic Âm Lịch ---
+        const getLunarDate = (dd, mm, yyyy) => {
+            const date = new Date(yyyy, mm - 1, dd);
+            const tet = new Date(2026, 1, 17);
+            const diffTime = date.getTime() - tet.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays >= 0) {
+                const lunarMonths2026 = [ { start: "2026-02-17", len: 29, name: 1 }, { start: "2026-03-18", len: 30, name: 2 }, { start: "2026-04-17", len: 30, name: 3 }, { start: "2026-05-17", len: 29, name: 4 }, { start: "2026-06-15", len: 30, name: 5 }, { start: "2026-07-15", len: 29, name: 6 }, { start: "2026-08-13", len: 30, name: 7 }, { start: "2026-09-12", len: 29, name: 8 }, { start: "2026-10-11", len: 30, name: 9 }, { start: "2026-11-10", len: 29, name: 10 }, { start: "2026-12-09", len: 30, name: 11 } ];
+                if (date < new Date(2026, 0, 19)) { return ""; }
+                for (let i = 0; i < lunarMonths2026.length; i++) {
+                    const mStart = new Date(lunarMonths2026[i].start);
+                    const nextMStart = i < lunarMonths2026.length - 1 ? new Date(lunarMonths2026[i+1].start) : new Date(2027, 0, 1);
+                    if (date >= mStart && date < nextMStart) {
+                        const d = Math.floor((date - mStart) / 86400000) + 1;
+                        return `${d}/${lunarMonths2026[i].name}`;
+                    }
+                }
+                return "";
+            } else {
+                 if (date < new Date(2026, 0, 19)) { const d = Math.floor((date - new Date(2026, 0, 1)) / 86400000) + 13; return `${d > 30 ? d - 30 : d}/${d > 30 ? 12 : 11}`; }
+                 if (date < tet) { const d = Math.floor((date - new Date(2026, 0, 19)) / 86400000) + 1; return `${d}/12`; }
+                 return "";
+            }
+        };
+
+        const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+        const dayNames = ["Hai", "Ba", "Tư", "Năm", "Sáu", "Bảy", "CN"];
+
+        // --- COMPONENTS ---
+        const TodoList = ({ title, items, onUpdate, bgColorClass = "bg-white", rotate = false, placeholder="Thêm công việc...", isPrint = false }) => {
+            useEffect(() => {
+                if (Array.isArray(items) && items.length === 0) {
+                     onUpdate([{ id: Date.now(), text: "", completed: false }]);
+                }
+            }, []);
+            const handleToggle = (id) => { const newItems = items.map(item => item.id === id ? { ...item, completed: !item.completed } : item); onUpdate(newItems); };
+            const handleChange = (id, text) => { const newItems = items.map(item => item.id === id ? { ...item, text: text } : item); onUpdate(newItems); };
+            const handleKeyDown = (e, index) => {
+                if (e.key === 'Enter') { e.preventDefault(); const newItems = [...items]; newItems.splice(index + 1, 0, { id: Date.now(), text: "", completed: false }); onUpdate(newItems);
+                setTimeout(() => { const inputs = document.querySelectorAll(`.${bgColorClass.split(' ')[0]} .todo-input`); if(inputs[index+1]) inputs[index+1].focus(); }, 0);
+                }
+                else if (e.key === 'Backspace' && items[index].text === '' && items.length > 1) { e.preventDefault(); const newItems = items.filter((_, i) => i !== index); onUpdate(newItems);
+                setTimeout(() => { const inputs = document.querySelectorAll(`.${bgColorClass.split(' ')[0]} .todo-input`); if(inputs[index-1]) inputs[index-1].focus(); }, 0);
+                }
+            };
+            const addItem = () => { onUpdate([...items, { id: Date.now(), text: "", completed: false }]); };
+            const deleteItem = (id) => { const newItems = items.filter(i => i.id !== id); if (newItems.length === 0) onUpdate([{ id: Date.now(), text: "", completed: false }]); else onUpdate(newItems); };
+            
+            // Logic hiển thị khi in (giữ nguyên cho chế độ xem thường, chế độ in đã tách riêng)
+            const displayItems = items;
+
+            if (!Array.isArray(items)) return null;
+            return (
+                <div className={`${bgColorClass} p-4 rounded-xl shadow-md border border-slate-200 ${rotate && !isPrint ? 'rotate-1 paper-stack' : ''} relative transition-all duration-300 h-full`}>
+                    {!isPrint && rotate && <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-yellow-200/50 backdrop-blur-sm rounded-sm shadow-sm"></div>}
+                    <div className="flex justify-between items-center mb-2 border-b-2 border-slate-300 pb-1">
+                        <h3 className="text-lg font-bold text-slate-700 font-hand">{title}</h3>
+                        <div className="flex gap-2 items-center todo-actions">
+                            <button onClick={addItem} className="text-blue-500 hover:bg-blue-50 rounded-full p-1 transition"><PlusIcon size={16}/></button>
+                        </div>
+                    </div>
+                    <div className={`space-y-0 ${bgColorClass.split(' ')[0]}`}>
+                        {displayItems.map((item, index) => (
+                            <div key={item.id || index} className="todo-item group">
+                                <input type="checkbox" className="todo-checkbox" checked={item.completed} onChange={() => handleToggle(item.id)} disabled={isPrint}/>
+                                <input type="text" className={`todo-input ${item.completed ? 'completed' : ''}`} value={item.text} onChange={(e) => handleChange(item.id, e.target.value)} onKeyDown={(e) => handleKeyDown(e, index)} placeholder={isPrint ? "" : placeholder} readOnly={isPrint} />
+                                <button onClick={() => deleteItem(item.id)} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition todo-actions"><TrashIcon size={14} /></button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const CalendarGrid = ({ year, month, events }) => {
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+            const getEventColor = (type) => { switch(type) { case 'holiday': return 'bg-red-100 text-red-700 border-red-200'; case 'macro': return 'bg-blue-100 text-blue-700 border-blue-200'; case 'etf': return 'bg-green-100 text-green-700 border-green-200'; case 'etf_cut': return 'bg-green-50 text-green-600 border-green-200 border-dashed'; case 'futures': return 'bg-orange-100 text-orange-700 border-orange-200'; case 'special': return 'bg-purple-100 text-purple-700 border-purple-200 font-bold'; default: return 'bg-gray-100 text-gray-700'; } };
+            const days = [];
+            for (let i = 0; i < startOffset; i++) days.push(<div key={`empty-${i}`} className="bg-gray-50/50 print:bg-white"></div>);
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dayEvents = events.filter(e => e.date === dateStr);
+                const lunar = getLunarDate(d, month + 1, year);
+                days.push(
+                    <div key={d} className="calendar-cell border-r border-b border-gray-200 print:border-slate-300">
+                        <div className="flex justify-between items-start mb-1">
+                            <span className={`text-sm font-semibold ml-1 ${[0, 6].includes((startOffset + d - 1) % 7) ? 'text-gray-400' : 'text-slate-700'}`}>{d}</span>
+                            <span className="lunar-date text-[9px] mr-1">{lunar}</span>
+                        </div>
+                        <div className="flex flex-col gap-0.5 overflow-hidden">
+                            {dayEvents.map((ev, idx) => (
+                                <div key={idx} className={`event-chip border ${getEventColor(ev.type)} print:border-2`} title={ev.desc}>{ev.title}</div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+            return (
+                <div className="bg-white border border-slate-200">
+                    <div className="grid grid-cols-7 gap-0 bg-slate-50 border-b border-slate-200 print:bg-white">
+                        {dayNames.map((d, i) => <div key={d} className={`text-center font-bold py-2 text-sm ${i >= 5 ? 'text-red-500' : 'text-slate-600'}`}>{d}</div>)}
+                    </div>
+                    <div className="calendar-grid">{days}</div>
+                </div>
+            );
+        };
+
+        const CalendarApp = () => {
+            const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+            const [selectedEvent, setSelectedEvent] = useState(null);
+            const [filterType, setFilterType] = useState('all');
+            const [calendarTitle, setCalendarTitle] = useState(() => localStorage.getItem('calTitle') || "Lịch Của Tôi 2026");
+            const [isEditingTitle, setIsEditingTitle] = useState(false);
+            const [monthlyGoals, setMonthlyGoals] = useState(() => { const saved = localStorage.getItem('monthlyGoals_v2'); return saved ? JSON.parse(saved) : {}; });
+            const [freeNotes, setFreeNotes] = useState(() => { const saved = localStorage.getItem('freeNotes_v2'); return saved ? JSON.parse(saved) : []; });
+            const [viewMode, setViewMode] = useState('single');
+            
+            useEffect(() => { localStorage.setItem('calTitle', calendarTitle); }, [calendarTitle]);
+            useEffect(() => { localStorage.setItem('monthlyGoals_v2', JSON.stringify(monthlyGoals)); }, [monthlyGoals]);
+            useEffect(() => { localStorage.setItem('freeNotes_v2', JSON.stringify(freeNotes)); }, [freeNotes]);
+
+            const currentMonthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+            const handleGoalUpdate = (newItems) => { setMonthlyGoals(prev => ({ ...prev, [currentMonthKey]: newItems })); };
+            const getEventColor = (type) => { switch(type) { case 'holiday': return 'bg-red-100 text-red-700 border-red-200'; case 'macro': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'etf': return 'bg-green-100 text-green-700 border-green-200'; case 'etf_cut': return 'bg-green-50 text-green-600 border-green-200 border-dashed'; case 'futures': return 'bg-orange-100 text-orange-700 border-orange-200';
+            case 'special': return 'bg-purple-100 text-purple-700 border-purple-200 font-bold'; default: return 'bg-gray-100 text-gray-700'; } };
+
+            // Render Print View - CHẾ ĐỘ SỔ TAY 2 TRANG
+            if (viewMode === 'print') {
+                return (
+                    <div className="bg-white min-h-screen">
+                        {/* Thanh điều khiển (Không in) */}
+                        <div className="fixed top-0 left-0 right-0 bg-slate-800 text-white p-4 flex justify-between items-center z-50 no-print shadow-lg">
+                            <div>
+                                <h2 className="font-bold text-lg">Chế độ In Sổ Tay (Planner 2026)</h2>
+                                <p className="text-xs text-slate-300">Khổ giấy in ngang (Landscape). In 2 mặt (lật cạnh ngắn) hoặc đóng thành tập.</p>
+                            </div>
+                            <button onClick={() => setViewMode('single')} className="bg-white text-slate-800 px-4 py-2 rounded-lg font-bold hover:bg-slate-100 flex items-center gap-2">
+                                <ReturnIcon size={18}/> Quay lại
+                            </button>
+                        </div>
+
+                        <div className="pt-20 pb-10">
+                            {[...Array(12)].map((_, i) => (
+                                <React.Fragment key={i}>
+                                    {/* TRANG 1: LỊCH THÁNG (Bên Trái) */}
+                                    <div className="print-page-break p-8 mx-auto max-w-[1100px] h-[100vh] flex flex-col print:max-w-none relative">
+                                        <div className="absolute top-4 right-4 opacity-10 text-9xl font-bold text-slate-900 z-0">{i + 1}</div>
+                                        <div className="flex justify-between items-end mb-6 border-b-4 border-slate-800 pb-2 z-10 relative">
+                                            <h1 className="text-5xl font-bold text-slate-800 uppercase tracking-tighter">{monthNames[i]} <span className="text-slate-400 font-light">2026</span></h1>
+                                            <div className="text-right">
+                                                <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">Vietnam Stock Market Calendar</div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Phần lịch hiển thị to rõ */}
+                                        <div className="flex-grow z-10">
+                                            <CalendarGrid year={2026} month={i} events={rawEvents} />
+                                        </div>
+                                        
+                                        {/* Chú thích nhỏ chân trang */}
+                                        <div className="mt-4 flex gap-4 text-[10px] text-slate-400 justify-center">
+                                            <span>🔴 Ngày Lễ</span>
+                                            <span>🔵 Vĩ mô (FED/GSO)</span>
+                                            <span>🟢 ETF Review</span>
+                                            <span>🟣 Nâng hạng</span>
+                                        </div>
+                                    </div>
+
+                                    {/* TRANG 2: FULL NOTES (Bên Phải - Tách rời theo ý bạn) */}
+                                    <div className="print-page-break p-10 mx-auto max-w-[1100px] h-[100vh] print:max-w-none bg-white">
+                                        <div className="h-full border-l-4 border-slate-200 pl-8 flex flex-col">
+                                            <h2 className="text-2xl font-bold text-slate-600 mb-6 font-hand flex items-center gap-2">
+                                                <EditIcon size={24}/> Kế hoạch hành động & Ghi chú
+                                            </h2>
+                                            
+                                            {/* Phần Goal Checklist */}
+                                            <div className="mb-8">
+                                                <h3 className="font-bold text-slate-800 border-b border-slate-300 mb-3 uppercase text-sm">Top Priorities</h3>
+                                                <div className="flex flex-col gap-3">
+                                                    {[...Array(5)].map((_, idx) => (
+                                                        <div key={idx} className="flex gap-3 items-center">
+                                                            <div className="w-5 h-5 border-2 border-slate-300 rounded"></div>
+                                                            <div className="h-px bg-slate-200 flex-grow relative top-2"></div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Phần Dòng kẻ (Ruled Lines) để viết tay */}
+                                            <div className="flex-grow flex flex-col gap-0">
+                                                <h3 className="font-bold text-slate-800 border-b border-slate-300 mb-1 uppercase text-sm">Chi tiết / Phân tích</h3>
+                                                {/* Tạo dòng kẻ */}
+                                                {[...Array(15)].map((_, idx) => (
+                                                    <div key={idx} className="w-full h-12 border-b border-slate-200 border-dashed"></div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            // Normal Interactive View
+            return (
+                <div className="max-w-7xl mx-auto p-4 md:p-8 min-h-screen print:hidden">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-6 pb-4 border-b border-slate-200">
+                        <div className="w-full md:w-auto mb-4 md:mb-0">
+                            <div className="flex items-center gap-2 group">
+                                {isEditingTitle ? (
+                                    <div className="flex items-center gap-2">
+                                        <input type="text" value={calendarTitle} onChange={(e) => setCalendarTitle(e.target.value)} className="text-3xl font-bold text-slate-800 border-b-2 border-blue-500 outline-none bg-transparent" autoFocus onBlur={() => setIsEditingTitle(false)} onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)} />
+                                        <button onClick={() => setIsEditingTitle(false)} className="text-green-600"><SaveIcon size={24}/></button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h1 className="text-3xl font-bold text-slate-800 tracking-tight cursor-pointer" onClick={() => setIsEditingTitle(true)}>{calendarTitle}</h1>
+                                        <button onClick={() => setIsEditingTitle(true)} className="text-slate-300 group-hover:text-slate-500 transition"><EditIcon size={20}/></button>
+                                    </>
+                                )}
+                            </div>
+                            <p className="text-slate-500 text-sm mt-1">Dữ liệu vĩ mô, ETF & Sự kiện thị trường 2026</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-3 w-full md:w-auto">
+                            <button onClick={() => setViewMode('print')} className="bg-slate-800 text-white px-4 py-2 rounded shadow hover:bg-slate-700 flex items-center gap-2 text-sm font-bold transition">
+                                <PrintIcon size={16}/> In Lịch (Sổ tay Planner)
+                            </button>
+                            <div className="flex items-center bg-white rounded-lg shadow-sm border border-slate-200 p-1">
+                                <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="p-2 hover:bg-slate-50 rounded text-slate-600"><ChevronLeft size={20}/></button>
+                                <span className="px-6 font-bold min-w-[140px] text-center text-lg text-slate-700">{monthNames[currentDate.getMonth()]}</span>
+                                <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="p-2 hover:bg-slate-50 rounded text-slate-600"><ChevronRight size={20}/></button>
+                            </div>
+                            <div className="flex flex-wrap justify-end gap-2 text-[11px]">
+                                <button onClick={() => setFilterType('all')} className={`px-2 py-1 rounded border ${filterType === 'all' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'}`}>Tất cả</button>
+                                <button onClick={() => setFilterType('holiday')} className="px-2 py-1 rounded border bg-red-50 text-red-600 border-red-100">Lễ Tết</button>
+                                <button onClick={() => setFilterType('macro')} className="px-2 py-1 rounded border bg-blue-50 text-blue-600 border-blue-100">Vĩ mô</button>
+                                <button onClick={() => setFilterType('etf')} className="px-2 py-1 rounded border bg-green-50 text-green-600 border-green-100">ETF</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row gap-8">
+                        <div className="flex-grow shadow-lg rounded-xl overflow-hidden border border-slate-200 bg-white">
+                             <CalendarGrid year={currentDate.getFullYear()} month={currentDate.getMonth()} events={rawEvents.filter(e => filterType === 'all' || e.type === filterType)} />
+                        </div>
+                        <div className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6">
+                            <TodoList 
+                                title={`Mục tiêu ${monthNames[currentDate.getMonth()]}`} 
+                                items={monthlyGoals[currentMonthKey] || []} 
+                                onUpdate={handleGoalUpdate} 
+                                bgColorClass="bg-[#fefce8]" 
+                                rotate={true} 
+                                placeholder="Thêm mục tiêu..." 
+                            />
+                            <TodoList title="Ghi chú chung" items={freeNotes} onUpdate={setFreeNotes} bgColorClass="bg-white" placeholder="Ghi chú nhanh..." />
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-xs text-slate-500 space-y-2">
+                                <div className="font-bold mb-1">Chú thích:</div>
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-green-100 border border-green-300"></div> Sự kiện ETF</div>
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-blue-100 border border-blue-300"></div> Vĩ mô (FED/GSO)</div>
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-orange-100 border border-orange-300"></div> Đáo hạn Phái sinh</div>
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-purple-100 border border-purple-300"></div> Nâng hạng (FTSE)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {selectedEvent && (
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedEvent(null)}>
+                            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full animate-bounce-in" onClick={e => e.stopPropagation()}>
+                                <div className="flex justify-between items-start mb-4">
+                                    <h3 className={`text-lg font-bold px-3 py-1 rounded-lg ${getEventColor(selectedEvent.type)}`}>{selectedEvent.title}</h3>
+                                    <button onClick={() => setSelectedEvent(null)} className="text-slate-400 hover:text-slate-600 bg-slate-100 p-1 rounded-full"><XIcon size={20}/></button>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3 text-slate-600">
+                                        <div className="bg-slate-100 p-2 rounded-lg"><CalendarIcon size={20} /></div>
+                                        <div className="flex flex-col"><span className="font-bold text-slate-800 text-lg">{selectedEvent.date.split('-').reverse().join('/')}</span><span className="text-xs text-slate-500">Thứ {new Date(selectedEvent.date).getDay() + 1 === 1 ? 'CN' : new Date(selectedEvent.date).getDay() + 1}</span></div>
+                                    </div>
+                                    <p className="text-slate-700 bg-slate-50 p-4 rounded-xl text-sm border border-slate-100 leading-relaxed">{selectedEvent.desc}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CalendarApp />);
+    </script>
+</body>
+</html>
