@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch Planner 2026 (A5 Calendar-Left)</title>
+    <title>Lịch Planner 2026 (A5: Lịch to - Note nhỏ)</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -14,7 +14,7 @@
 
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
-        /* CSS cho Web View */
+        /* CSS Web View */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
         .calendar-cell { background-color: white; min-height: 80px; padding: 2px; position: relative; transition: all 0.2s; }
         .font-hand { font-family: 'Patrick Hand', cursive; }
@@ -31,7 +31,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
-        /* --- TÙY CHỈNH IN A5 (LỊCH TRÁI - NOTE PHẢI) --- */
+        /* --- TÙY CHỈNH IN A5 (LỊCH 65% - NOTE 35%) --- */
         @media print {
             @page { 
                 size: A5 landscape; 
@@ -45,23 +45,23 @@
                 height: 138mm; 
                 width: 100%;
                 display: flex; 
-                flex-direction: row; /* Xếp ngang: Code viết trước nằm bên trái */
+                flex-direction: row; 
                 gap: 5mm; 
             }
             
-            /* Căn chỉnh ô lịch cho A5 */
+            /* Tinh chỉnh ô lịch khi in */
             .calendar-cell { 
-                min-height: 15mm !important; 
+                min-height: 16mm !important; /* Tăng chiều cao lên chút vì lịch rộng hơn */
                 padding: 1px !important;
                 border: 0.5px solid #cbd5e1 !important;
             }
             .calendar-grid { gap: 0; border: 1px solid #94a3b8; }
             
-            /* Font chữ nhỏ cho A5 */
+            /* Font chữ */
             .text-4xl { font-size: 1.5rem !important; } 
             .text-xl { font-size: 1rem !important; }
-            .event-chip { font-size: 7px !important; padding: 0 2px !important; height: 12px; line-height: 12px; }
-            .lunar-date { font-size: 6px !important; bottom: 1px !important; right: 2px !important; }
+            .event-chip { font-size: 8px !important; padding: 0 2px !important; height: 13px; line-height: 13px; }
+            .lunar-date { font-size: 7px !important; bottom: 1px !important; right: 2px !important; }
             
             .shadow-lg, .shadow-md { box-shadow: none !important; }
             .bg-slate-50 { background-color: white !important; }
@@ -320,8 +320,8 @@
                         <div className="pt-12 pb-10">
                             {[...Array(12)].map((_, i) => (
                                 <div key={i} className="print-page-break mx-auto">
-                                    {/* CỘT TRÁI: LỊCH (50%) */}
-                                    <div className="w-1/2 flex flex-col h-full border-r border-slate-200 pr-2">
+                                    {/* CỘT TRÁI: LỊCH (65%) */}
+                                    <div className="w-[65%] flex flex-col h-full border-r border-slate-200 pr-2">
                                         <div className="flex justify-between items-end mb-2 border-b border-slate-800 pb-1">
                                             <h1 className="text-4xl font-bold text-slate-800 uppercase tracking-tighter">{monthNames[i]} <span className="text-slate-400 font-light text-xl">2026</span></h1>
                                             <div className="text-right text-[8px] text-slate-500 font-bold">VN STOCK</div>
@@ -334,8 +334,8 @@
                                         </div>
                                     </div>
 
-                                    {/* CỘT PHẢI: NOTE (50%) */}
-                                    <div className="w-1/2 flex flex-col h-full pl-2">
+                                    {/* CỘT PHẢI: NOTE (35%) */}
+                                    <div className="flex-grow flex flex-col h-full pl-2">
                                         <h2 className="text-lg font-bold text-slate-600 mb-2 font-hand flex items-center gap-2 border-b border-slate-200 pb-1">
                                             <EditIcon size={16}/> Ghi chú & Kế hoạch
                                         </h2>
