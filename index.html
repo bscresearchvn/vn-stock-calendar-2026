@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch Planner 2026 (A5 Note-Left)</title>
+    <title>Lịch Planner 2026 (A5 Calendar-Left)</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -14,7 +14,7 @@
 
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
-        /* CSS cho Web View (Giữ nguyên) */
+        /* CSS cho Web View */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
         .calendar-cell { background-color: white; min-height: 80px; padding: 2px; position: relative; transition: all 0.2s; }
         .font-hand { font-family: 'Patrick Hand', cursive; }
@@ -31,7 +31,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
-        /* --- TÙY CHỈNH IN A5 (NOTE TRÁI - LỊCH PHẢI) --- */
+        /* --- TÙY CHỈNH IN A5 (LỊCH TRÁI - NOTE PHẢI) --- */
         @media print {
             @page { 
                 size: A5 landscape; 
@@ -45,7 +45,7 @@
                 height: 138mm; 
                 width: 100%;
                 display: flex; 
-                flex-direction: row; /* Xếp ngang */
+                flex-direction: row; /* Xếp ngang: Code viết trước nằm bên trái */
                 gap: 5mm; 
             }
             
@@ -302,14 +302,14 @@
             case 'etf': return 'bg-green-100 text-green-700 border-green-200'; case 'etf_cut': return 'bg-green-50 text-green-600 border-green-200 border-dashed'; case 'futures': return 'bg-orange-100 text-orange-700 border-orange-200';
             case 'special': return 'bg-purple-100 text-purple-700 border-purple-200 font-bold'; default: return 'bg-gray-100 text-gray-700'; } };
 
-            // Render Print View - A5 LANDSCAPE (NOTE LEFT - CALENDAR RIGHT)
+            // Render Print View - A5 LANDSCAPE (CALENDAR LEFT - NOTE RIGHT)
             if (viewMode === 'print') {
                 return (
                     <div className="bg-white min-h-screen">
                         {/* Thanh điều khiển (Không in) */}
                         <div className="fixed top-0 left-0 right-0 bg-slate-800 text-white p-2 flex justify-between items-center z-50 no-print shadow-lg">
                             <div>
-                                <h2 className="font-bold text-sm">Chế độ In: A5 Ngang (Note Trái - Lịch Phải)</h2>
+                                <h2 className="font-bold text-sm">Chế độ In: A5 Ngang (Lịch Trái - Note Phải)</h2>
                                 <p className="text-[10px] text-slate-300">Chọn khổ giấy in là A5. Scale 100%.</p>
                             </div>
                             <button onClick={() => setViewMode('single')} className="bg-white text-slate-800 px-3 py-1 rounded text-xs font-bold hover:bg-slate-100 flex items-center gap-1">
@@ -320,21 +320,8 @@
                         <div className="pt-12 pb-10">
                             {[...Array(12)].map((_, i) => (
                                 <div key={i} className="print-page-break mx-auto">
-                                    {/* CỘT TRÁI: NOTE (50%) */}
+                                    {/* CỘT TRÁI: LỊCH (50%) */}
                                     <div className="w-1/2 flex flex-col h-full border-r border-slate-200 pr-2">
-                                        <h2 className="text-lg font-bold text-slate-600 mb-2 font-hand flex items-center gap-2 border-b border-slate-200 pb-1">
-                                            <EditIcon size={16}/> Kế hoạch & Ghi chú
-                                        </h2>
-                                        
-                                        <div className="flex-grow flex flex-col gap-0">
-                                            {[...Array(11)].map((_, idx) => (
-                                                <div key={idx} className="w-full h-8 border-b border-slate-300 border-dashed"></div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* CỘT PHẢI: LỊCH (50%) */}
-                                    <div className="w-1/2 flex flex-col h-full pl-2">
                                         <div className="flex justify-between items-end mb-2 border-b border-slate-800 pb-1">
                                             <h1 className="text-4xl font-bold text-slate-800 uppercase tracking-tighter">{monthNames[i]} <span className="text-slate-400 font-light text-xl">2026</span></h1>
                                             <div className="text-right text-[8px] text-slate-500 font-bold">VN STOCK</div>
@@ -344,6 +331,19 @@
                                         </div>
                                         <div className="mt-1 flex gap-2 text-[7px] text-slate-400 flex-wrap">
                                             <span>🔴 Lễ</span> <span>🔵 Vĩ mô</span> <span>🟢 ETF</span> <span>🟣 FTSE</span>
+                                        </div>
+                                    </div>
+
+                                    {/* CỘT PHẢI: NOTE (50%) */}
+                                    <div className="w-1/2 flex flex-col h-full pl-2">
+                                        <h2 className="text-lg font-bold text-slate-600 mb-2 font-hand flex items-center gap-2 border-b border-slate-200 pb-1">
+                                            <EditIcon size={16}/> Ghi chú & Kế hoạch
+                                        </h2>
+                                        
+                                        <div className="flex-grow flex flex-col gap-0">
+                                            {[...Array(11)].map((_, idx) => (
+                                                <div key={idx} className="w-full h-8 border-b border-slate-300 border-dashed"></div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
