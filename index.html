@@ -8,37 +8,25 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
-        :root {
-            --primary: #0f172a;
-            --paper: #ffffff;
-            --dot-color: #cbd5e1;
-        }
+        :root { --primary: #0f172a; --paper: #ffffff; --dot-color: #cbd5e1; }
 
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-hand { font-family: 'Patrick Hand', cursive; }
         
-        /* Dot Grid Pattern cho phần Note */
-        .dot-grid {
-            background-size: 20px 20px;
-            background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
-        }
+        .dot-grid { background-size: 20px 20px; background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px); }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         
-        /* Calendar Styling */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
         .calendar-cell { min-height: 110px; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 6px; position: relative; background: white; transition: all 0.2s; }
         .calendar-cell:hover { background-color: #f8fafc; }
         
-        /* Badge Styling */
         .evt-badge { font-size: 10px; padding: 2px 6px; margin-bottom: 3px; border-radius: 4px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.1s; }
         .evt-badge:hover { transform: translateY(-1px); z-index: 10; position: relative; }
         
@@ -49,38 +37,20 @@
         .evt-special { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; font-weight: 600; }
         .evt-user { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; border-left: 3px solid #64748b; }
 
-        /* PRINT STYLES - A4 Landscape Optimized */
         @media print {
             @page { size: A4 landscape; margin: 0; }
             body { background: white; }
             .no-print { display: none !important; }
-            .print-container { 
-                display: flex !important; 
-                width: 297mm; 
-                height: 210mm; 
-                page-break-after: always; 
-                padding: 10mm 15mm;
-                box-sizing: border-box;
-            }
-            
-            /* Layout Chia Cột */
+            .print-container { display: flex !important; width: 297mm; height: 210mm; page-break-after: always; padding: 10mm 15mm; box-sizing: border-box; }
             .print-cal-section { width: 60%; padding-right: 10mm; display: flex; flex-direction: column; }
             .print-note-section { width: 40%; padding-left: 10mm; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; }
-            
-            /* Tinh chỉnh Lịch khi in */
             .calendar-grid { border: 1px solid #94a3b8; border-radius: 0; }
             .calendar-cell { border-color: #cbd5e1; min-height: 80px; padding: 2px; }
             .evt-badge { border: none !important; padding: 1px 4px; font-size: 9px; box-shadow: none; margin-bottom: 1px; }
-            
-            /* Màu sắc in ấn (High Contrast) */
             .text-slate-400 { color: #94a3b8 !important; }
             .text-slate-800 { color: #000 !important; }
-            
-            /* Ẩn các placeholder input */
             input::placeholder, textarea::placeholder { color: transparent !important; }
             input, textarea { border: none !important; background: transparent !important; resize: none; }
-            
-            /* Hiển thị Dot Grid khi in */
             .dot-grid { -webkit-print-color-adjust: exact; }
             .print-border-bottom { border-bottom: 1px dashed #94a3b8; }
         }
@@ -90,10 +60,23 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        const { Calendar, Save, Download, Upload, Plus, Trash2, Printer, ChevronLeft, ChevronRight, X } = lucide;
+        const { useState, useEffect } = React;
 
-        // --- 1. DỮ LIỆU GỐC (Static Data) ---
+        // --- 0. ICONS (Tích hợp sẵn để tránh lỗi) ---
+        const IconWrapper = ({ children, size = 16, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+        );
+        const CalendarIcon = (p) => <IconWrapper {...p}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></IconWrapper>;
+        const SaveIcon = (p) => <IconWrapper {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></IconWrapper>;
+        const DownloadIcon = (p) => <IconWrapper {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></IconWrapper>;
+        const UploadIcon = (p) => <IconWrapper {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></IconWrapper>;
+        const PlusIcon = (p) => <IconWrapper {...p}><path d="M5 12h14"/><path d="M12 5v14"/></IconWrapper>;
+        const TrashIcon = (p) => <IconWrapper {...p}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></IconWrapper>;
+        const PrinterIcon = (p) => <IconWrapper {...p}><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></IconWrapper>;
+        const ChevronLeft = (p) => <IconWrapper {...p}><path d="m15 18-6-6 6-6"/></IconWrapper>;
+        const ChevronRight = (p) => <IconWrapper {...p}><path d="m9 18 6-6-6-6"/></IconWrapper>;
+
+        // --- 1. DỮ LIỆU ---
         const staticEvents = [
             { id: 's1', date: "2026-01-01", title: "Tết Dương Lịch", type: "holiday", desc: "Nghỉ lễ toàn quốc" },
             { id: 's2', date: "2026-01-15", title: "Đáo hạn Phái sinh", type: "futures", desc: "Đáo hạn VN30F2601" },
@@ -105,7 +88,6 @@
             { id: 's8', date: "2026-04-30", title: "Lễ 30/4", type: "holiday", desc: "Giải phóng Miền Nam" },
             { id: 's9', date: "2026-09-02", title: "Lễ 2/9", type: "holiday", desc: "Quốc Khánh" },
             { id: 's10', date: "2026-09-21", title: "FTSE: Nâng hạng (Dự báo)", type: "special", desc: "Dự kiến chính thức nâng hạng Secondary Emerging" },
-            // ... (Đã rút gọn để demo, code thực tế sẽ dùng full list ở trên)
              { date: "2026-01-06", title: "GSO: KT-XH", type: "macro", desc: "Tổng cục Thống kê công bố số liệu" },
             { date: "2026-01-19", title: "ETF Nội: Update Info", type: "etf", desc: "Cập nhật: VNDiamond, VNFIN LEAD, VNX, VNDIVIDEND" },
             { date: "2026-01-21", title: "ETF Nội: Review", type: "etf", desc: "Xem xét định kỳ: HOSE, VNFIN LEAD, VN50, VNMITECH" },
@@ -163,333 +145,126 @@
         const STORAGE_KEY = 'bsc_analyst_calendar_v1';
 
         // --- 3. SUB-COMPONENTS ---
-
-        // Modal Thêm sự kiện
         const AddEventModal = ({ isOpen, onClose, onSave, defaultDate }) => {
             if (!isOpen) return null;
             const [title, setTitle] = useState('');
             const [type, setType] = useState('user');
-            
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                onSave({ title, type, date: defaultDate });
-                setTitle('');
-                onClose();
-            };
-
+            const handleSubmit = (e) => { e.preventDefault(); onSave({ title, type, date: defaultDate }); setTitle(''); onClose(); };
             return (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
                         <h3 className="text-lg font-bold mb-4 font-serif">Thêm sự kiện cá nhân</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Nội dung</label>
-                                <input autoFocus required type="text" value={title} onChange={e=>setTitle(e.target.value)} className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: Họp team, Deadline báo cáo..." />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Loại</label>
-                                <select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded-md p-2 outline-none">
-                                    <option value="user">Cá nhân (Ghi chú)</option>
-                                    <option value="macro">Quan trọng (Vĩ mô)</option>
-                                    <option value="special">Đặc biệt (Highlight)</option>
-                                </select>
-                            </div>
-                            <div className="flex justify-end gap-2 mt-6">
-                                <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-md">Hủy</button>
-                                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Lưu sự kiện</button>
-                            </div>
+                            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nội dung</label><input autoFocus required type="text" value={title} onChange={e=>setTitle(e.target.value)} className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: Họp team, Deadline báo cáo..." /></div>
+                            <div><label className="block text-sm font-medium text-slate-700 mb-1">Loại</label><select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded-md p-2 outline-none"><option value="user">Cá nhân (Ghi chú)</option><option value="macro">Quan trọng (Vĩ mô)</option><option value="special">Đặc biệt (Highlight)</option></select></div>
+                            <div className="flex justify-end gap-2 mt-6"><button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-md">Hủy</button><button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Lưu sự kiện</button></div>
                         </form>
                     </div>
                 </div>
             );
         };
 
-        // Note Module (Reusable)
         const NoteModule = ({ title, icon: Icon, items, type, onUpdate, color = "blue", isPrint }) => {
-            const handleChange = (idx, val) => {
-                const newItems = [...items];
-                newItems[idx] = val;
-                onUpdate(newItems);
-            };
-
+            const handleChange = (idx, val) => { const newItems = [...items]; newItems[idx] = val; onUpdate(newItems); };
             return (
                 <div className="mb-6">
                     <div className={`flex items-center gap-2 mb-2 pb-1 border-b border-${color}-200`}>
                         {Icon && <Icon size={16} className={`text-${color}-600`} />}
                         <h4 className={`font-serif font-bold text-sm uppercase tracking-wider text-${color}-900`}>{title}</h4>
                     </div>
-                    
-                    {type === 'list' && (
-                        <div className="flex flex-col gap-2">
-                            {items.map((item, i) => (
-                                <div key={i} className="flex items-center gap-2 group">
-                                    <div className={`w-1.5 h-1.5 rounded-full bg-${color}-400 flex-shrink-0`}></div>
-                                    <input 
-                                        type="text" 
-                                        value={item || ''}
-                                        onChange={(e) => handleChange(i, e.target.value)}
-                                        className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-blue-400 outline-none font-hand text-lg text-slate-700 print-border-bottom"
-                                        placeholder={isPrint ? "" : "..."}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    
-                    {type === 'grid' && (
-                         <div className="relative min-h-[150px] rounded-lg border border-slate-100 bg-white/50 dot-grid p-4">
-                            <textarea 
-                                value={items[0] || ''}
-                                onChange={(e) => handleChange(0, e.target.value)}
-                                className="w-full h-full bg-transparent outline-none font-hand text-lg leading-7 resize-none"
-                                placeholder={isPrint ? "" : "Ghi chú tự do..."}
-                            ></textarea>
-                         </div>
-                    )}
+                    {type === 'list' && (<div className="flex flex-col gap-2">{items.map((item, i) => (<div key={i} className="flex items-center gap-2 group"><div className={`w-1.5 h-1.5 rounded-full bg-${color}-400 flex-shrink-0`}></div><input type="text" value={item || ''} onChange={(e) => handleChange(i, e.target.value)} className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-blue-400 outline-none font-hand text-lg text-slate-700 print-border-bottom" placeholder={isPrint ? "" : "..."} /></div>))}</div>)}
+                    {type === 'grid' && (<div className="relative min-h-[150px] rounded-lg border border-slate-100 bg-white/50 dot-grid p-4"><textarea value={items[0] || ''} onChange={(e) => handleChange(0, e.target.value)} className="w-full h-full bg-transparent outline-none font-hand text-lg leading-7 resize-none" placeholder={isPrint ? "" : "Ghi chú tự do..."}></textarea></div>)}
                 </div>
             );
         };
 
         // --- 4. MAIN APP ---
         const App = () => {
-            // State
             const [view, setView] = useState('web');
-            const [month, setMonth] = useState(0); // Jan 2026
+            const [month, setMonth] = useState(0); 
             const [userEvents, setUserEvents] = useState([]);
-            const [notes, setNotes] = useState({}); // { "2026-0": { priorities: [], watchlist: [], memo: [] } }
+            const [notes, setNotes] = useState({});
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [selectedDate, setSelectedDate] = useState(null);
 
-            // Load Data
-            useEffect(() => {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    setUserEvents(data.events || []);
-                    setNotes(data.notes || {});
-                }
-            }, []);
+            useEffect(() => { const saved = localStorage.getItem(STORAGE_KEY); if (saved) { const data = JSON.parse(saved); setUserEvents(data.events || []); setNotes(data.notes || {}); } }, []);
+            useEffect(() => { const data = { events: userEvents, notes: notes }; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }, [userEvents, notes]);
 
-            // Save Data
-            useEffect(() => {
-                const data = { events: userEvents, notes: notes };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            }, [userEvents, notes]);
+            const handleExport = () => { const data = { events: userEvents, notes: notes, version: 1 }; const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `lich-chung-khoan-2026-backup-${new Date().toISOString().slice(0,10)}.json`; a.click(); };
+            const handleImport = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (evt) => { try { const data = JSON.parse(evt.target.result); if (confirm('Khôi phục dữ liệu?')) { setUserEvents(data.events || []); setNotes(data.notes || {}); alert('Xong!'); } } catch (err) { alert('Lỗi!'); } }; reader.readAsText(file); };
+            const addEvent = (evtData) => { setUserEvents([...userEvents, { ...evtData, id: Date.now().toString() }]); };
+            const removeUserEvent = (id) => { if (confirm('Xóa?')) setUserEvents(userEvents.filter(e => e.id !== id)); };
+            const updateNote = (category, items) => { const key = `2026-${month}`; setNotes(prev => ({ ...prev, [key]: { ...(prev[key] || {}), [category]: items } })); };
 
-            // Handlers
-            const handleExport = () => {
-                const data = { events: userEvents, notes: notes, version: 1 };
-                const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `lich-chung-khoan-2026-backup-${new Date().toISOString().slice(0,10)}.json`;
-                a.click();
-            };
-
-            const handleImport = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    try {
-                        const data = JSON.parse(evt.target.result);
-                        if (confirm('Dữ liệu hiện tại sẽ bị ghi đè. Bạn chắc chắn muốn khôi phục?')) {
-                            setUserEvents(data.events || []);
-                            setNotes(data.notes || {});
-                            alert('Đã khôi phục dữ liệu thành công!');
-                        }
-                    } catch (err) { alert('File lỗi!'); }
-                };
-                reader.readAsText(file);
-            };
-
-            const addEvent = (evtData) => {
-                const newEvt = { ...evtData, id: Date.now().toString() };
-                setUserEvents([...userEvents, newEvt]);
-            };
-
-            const removeUserEvent = (id) => {
-                if (confirm('Xóa sự kiện này?')) {
-                    setUserEvents(userEvents.filter(e => e.id !== id));
-                }
-            };
-
-            const updateNote = (category, items) => {
-                const key = `2026-${month}`;
-                setNotes(prev => ({
-                    ...prev,
-                    [key]: { ...(prev[key] || {}), [category]: items }
-                }));
-            };
-
-            // Render Helpers
             const currentNote = notes[`2026-${month}`] || { priorities: Array(3).fill(''), watchlist: Array(5).fill(''), memo: [''] };
             const allEvents = [...staticEvents, ...userEvents];
             
             const renderMonth = (mIdx, isPrint = false) => {
                 const days = generateCalendar(2026, mIdx);
                 const monthEvts = allEvents.filter(e => new Date(e.date).getMonth() === mIdx);
-
                 return (
                     <div className={`bg-white ${isPrint ? 'print-container' : 'p-6 rounded-xl shadow-lg border border-slate-200'} mb-8`}>
-                        {/* Header Calendar */}
                         <div className={`flex justify-between items-end mb-6 ${isPrint ? 'border-b-2 border-slate-800 pb-4' : ''}`}>
-                            <div>
-                                <h2 className="text-4xl font-serif font-bold text-slate-800 uppercase tracking-tight">
-                                    {monthNames[mIdx]} <span className="text-slate-300 font-light">2026</span>
-                                </h2>
-                                {isPrint && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Vietnam Stock Market Planner</p>}
-                            </div>
-                            {!isPrint && (
-                                <div className="flex gap-2">
-                                     <button onClick={() => setMonth(Math.max(0, month - 1))} className="p-2 hover:bg-slate-100 rounded-full"><ChevronLeft /></button>
-                                     <button onClick={() => setMonth(Math.min(11, month + 1))} className="p-2 hover:bg-slate-100 rounded-full"><ChevronRight /></button>
-                                </div>
-                            )}
+                            <div><h2 className="text-4xl font-serif font-bold text-slate-800 uppercase tracking-tight">{monthNames[mIdx]} <span className="text-slate-300 font-light">2026</span></h2>{isPrint && <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Vietnam Stock Market Planner</p>}</div>
+                            {!isPrint && (<div className="flex gap-2"><button onClick={() => setMonth(Math.max(0, month - 1))} className="p-2 hover:bg-slate-100 rounded-full"><ChevronLeft /></button><button onClick={() => setMonth(Math.min(11, month + 1))} className="p-2 hover:bg-slate-100 rounded-full"><ChevronRight /></button></div>)}
                         </div>
-
                         <div className="flex flex-col md:flex-row h-full">
-                            {/* LEFT: CALENDAR (60%) */}
                             <div className={`${isPrint ? 'print-cal-section' : 'md:w-3/5 md:pr-8'}`}>
                                 <div className="calendar-grid">
-                                    {/* Days Header */}
-                                    {dayNames.map(d => (
-                                        <div key={d} className="bg-slate-50 text-center py-2 text-xs font-bold text-slate-500 uppercase border-b border-r border-slate-100 last:border-r-0">
-                                            {d}
-                                        </div>
-                                    ))}
-                                    {/* Cells */}
+                                    {dayNames.map(d => (<div key={d} className="bg-slate-50 text-center py-2 text-xs font-bold text-slate-500 uppercase border-b border-r border-slate-100 last:border-r-0">{d}</div>))}
                                     {days.map((d, i) => {
                                         if (!d) return <div key={i} className="bg-slate-50/30 border-r border-b border-f1f5f9"></div>;
                                         const dateStr = `2026-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                                         const evts = monthEvts.filter(e => e.date === dateStr);
-                                        
                                         return (
                                             <div key={i} className="calendar-cell group" onClick={() => { if(!isPrint) { setSelectedDate(dateStr); setIsModalOpen(true); } }}>
-                                                <div className="flex justify-between">
-                                                    <span className={`text-sm font-semibold ml-1 ${[0, 6].includes(new Date(2026, mIdx, d).getDay()) ? 'text-red-400' : 'text-slate-600'}`}>{d}</span>
-                                                    {!isPrint && <span className="opacity-0 group-hover:opacity-100 cursor-pointer text-slate-300 hover:text-blue-500"><Plus size={12}/></span>}
-                                                </div>
-                                                <div className="mt-1">
-                                                    {evts.map((e, idx) => (
-                                                        <div key={idx} className={`evt-badge ${'evt-'+e.type} group/tag relative`} title={e.desc}>
-                                                            {e.title}
-                                                            {/* Nút xóa cho user event */}
-                                                            {e.type === 'user' && !isPrint && (
-                                                                <button onClick={(ev)=>{ev.stopPropagation(); removeUserEvent(e.id)}} className="absolute right-0 top-0 bottom-0 px-1 bg-red-500 text-white opacity-0 group-hover/tag:opacity-100 text-[8px]">×</button>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                                <div className="flex justify-between"><span className={`text-sm font-semibold ml-1 ${[0, 6].includes(new Date(2026, mIdx, d).getDay()) ? 'text-red-400' : 'text-slate-600'}`}>{d}</span>{!isPrint && <span className="opacity-0 group-hover:opacity-100 cursor-pointer text-slate-300 hover:text-blue-500"><PlusIcon size={12}/></span>}</div>
+                                                <div className="mt-1">{evts.map((e, idx) => (<div key={idx} className={`evt-badge ${'evt-'+e.type} group/tag relative`} title={e.desc}>{e.title}{e.type === 'user' && !isPrint && (<button onClick={(ev)=>{ev.stopPropagation(); removeUserEvent(e.id)}} className="absolute right-0 top-0 bottom-0 px-1 bg-red-500 text-white opacity-0 group-hover/tag:opacity-100 text-[8px]">×</button>)}</div>))}</div>
                                             </div>
                                         )
                                     })}
                                 </div>
-                                <div className="mt-4 flex gap-4 text-[10px] text-slate-400 justify-center">
-                                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-red-200"></span> Lễ/Tết</span>
-                                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-blue-200"></span> Vĩ mô</span>
-                                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-green-200"></span> ETF</span>
-                                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-purple-200"></span> Sự kiện</span>
-                                </div>
+                                <div className="mt-4 flex gap-4 text-[10px] text-slate-400 justify-center"><span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-red-200"></span> Lễ/Tết</span><span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-blue-200"></span> Vĩ mô</span><span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-green-200"></span> ETF</span><span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-purple-200"></span> Sự kiện</span></div>
                             </div>
-
-                            {/* RIGHT: NOTE (40%) */}
                             <div className={`${isPrint ? 'print-note-section' : 'md:w-2/5 md:pl-8 md:border-l border-slate-100 mt-6 md:mt-0'}`}>
-                                <NoteModule 
-                                    title="Trọng tâm tháng" 
-                                    type="list" 
-                                    items={currentNote.priorities || Array(3).fill('')} 
-                                    color="slate" 
-                                    onUpdate={(val) => updateNote('priorities', val)}
-                                    isPrint={isPrint}
-                                />
-                                <NoteModule 
-                                    title="Watchlist / Trading Idea" 
-                                    type="list" 
-                                    items={currentNote.watchlist || Array(5).fill('')} 
-                                    color="blue" 
-                                    onUpdate={(val) => updateNote('watchlist', val)}
-                                    isPrint={isPrint}
-                                />
-                                <NoteModule 
-                                    title="Ghi chú phân tích" 
-                                    type="grid" 
-                                    items={currentNote.memo || ['']} 
-                                    color="slate" 
-                                    onUpdate={(val) => updateNote('memo', val)}
-                                    isPrint={isPrint}
-                                />
+                                <NoteModule title="Trọng tâm tháng" type="list" items={currentNote.priorities || Array(3).fill('')} color="slate" onUpdate={(val) => updateNote('priorities', val)} isPrint={isPrint} />
+                                <NoteModule title="Watchlist / Trading Idea" type="list" items={currentNote.watchlist || Array(5).fill('')} color="blue" onUpdate={(val) => updateNote('watchlist', val)} isPrint={isPrint} />
+                                <NoteModule title="Ghi chú phân tích" type="grid" items={currentNote.memo || ['']} color="slate" onUpdate={(val) => updateNote('memo', val)} isPrint={isPrint} />
                             </div>
                         </div>
                     </div>
                 );
             };
 
-            // --- VIEW: PRINT MODE ---
             if (view === 'print') {
                 return (
                     <div>
                         <div className="fixed top-0 left-0 w-full bg-slate-900 text-white p-3 flex justify-between items-center z-50 no-print shadow-xl">
-                            <div className="flex items-center gap-2">
-                                <Printer size={18} />
-                                <span className="font-bold">Chế độ In Ấn (Print Mode)</span>
-                            </div>
+                            <div className="flex items-center gap-2"><PrinterIcon size={18} /><span className="font-bold">Chế độ In Ấn (Print Mode)</span></div>
                             <div className="text-sm text-slate-300">Khổ giấy: A4 Landscape • Scale: 100% • Background Graphics: On</div>
                             <button onClick={() => setView('web')} className="bg-white text-slate-900 px-4 py-1.5 rounded font-bold text-sm hover:bg-slate-100 transition">Thoát</button>
                         </div>
-                        <div className="bg-white pt-10">
-                            {[...Array(12)].map((_, i) => (
-                                <div key={i}>{renderMonth(i, true)}</div>
-                            ))}
-                        </div>
+                        <div className="bg-white pt-10">{[...Array(12)].map((_, i) => (<div key={i}>{renderMonth(i, true)}</div>))}</div>
                     </div>
                 );
             }
 
-            // --- VIEW: WEB MODE ---
             return (
                 <div className="min-h-screen pb-20">
-                    {/* Header */}
                     <div className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
                         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div className="flex items-center gap-3"><div className="bg-blue-600 text-white p-2 rounded-lg"><CalendarIcon size={24} /></div><div><h1 className="text-xl font-bold text-slate-800">Planner Chứng Khoán 2026</h1><p className="text-xs text-slate-500">Dành riêng cho Analyst & Nhà đầu tư</p></div></div>
                             <div className="flex items-center gap-3">
-                                <div className="bg-blue-600 text-white p-2 rounded-lg"><Calendar size={24} /></div>
-                                <div>
-                                    <h1 className="text-xl font-bold text-slate-800">Planner Chứng Khoán 2026</h1>
-                                    <p className="text-xs text-slate-500">Dành riêng cho Analyst & Nhà đầu tư</p>
-                                </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-3">
-                                {/* Tools Group */}
                                 <div className="flex bg-slate-100 p-1 rounded-lg">
-                                    <button onClick={handleExport} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-white hover:shadow rounded-md transition" title="Sao lưu dữ liệu về máy">
-                                        <Download size={16} /> <span className="hidden sm:inline">Sao lưu</span>
-                                    </button>
-                                    <label className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-white hover:shadow rounded-md transition cursor-pointer" title="Khôi phục dữ liệu từ file">
-                                        <Upload size={16} /> <span className="hidden sm:inline">Khôi phục</span>
-                                        <input type="file" onChange={handleImport} accept=".json" className="hidden" />
-                                    </label>
+                                    <button onClick={handleExport} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-white hover:shadow rounded-md transition" title="Sao lưu dữ liệu về máy"><DownloadIcon size={16} /> <span className="hidden sm:inline">Sao lưu</span></button>
+                                    <label className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-white hover:shadow rounded-md transition cursor-pointer" title="Khôi phục dữ liệu từ file"><UploadIcon size={16} /> <span className="hidden sm:inline">Khôi phục</span><input type="file" onChange={handleImport} accept=".json" className="hidden" /></label>
                                 </div>
-                                <button onClick={() => setView('print')} className="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-slate-700 transition flex items-center gap-2">
-                                    <Printer size={16} /> In Lịch
-                                </button>
+                                <button onClick={() => setView('print')} className="bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm shadow hover:bg-slate-700 transition flex items-center gap-2"><PrinterIcon size={16} /> In Lịch</button>
                             </div>
                         </div>
                     </div>
-
-                    {/* Content */}
-                    <div className="max-w-5xl mx-auto mt-8 px-4">
-                        {renderMonth(month, false)}
-                    </div>
-
-                    <AddEventModal 
-                        isOpen={isModalOpen} 
-                        onClose={() => setIsModalOpen(false)} 
-                        onSave={addEvent} 
-                        defaultDate={selectedDate}
-                    />
+                    <div className="max-w-5xl mx-auto mt-8 px-4">{renderMonth(month, false)}</div>
+                    <AddEventModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={addEvent} defaultDate={selectedDate} />
                 </div>
             );
         };
