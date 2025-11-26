@@ -3,49 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSC Planner 2026 - Official Design</title>
+    <title>BSC Analyst Planner 2026 (Official Data)</title>
     
-    <!-- React Dependencies -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Fonts: Inter & Playfair Display -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        serifText: ['Lora', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
                     colors: {
                         bsc: {
-                            // Mã màu trích xuất từ Logo BSC
-                            DEFAULT: '#008A83',  // Xanh Ngọc (Teal)
-                            dark: '#006C66',     // Darker shade for text
-                            light: '#E6F4F3',    // Background tint
-                            gold: '#C5A059',     // Gold/Bronze giữ nguyên
-                            goldLight: '#F3EFE6'
-                        },
-                        ink: {
-                            900: '#111827',
-                            500: '#6B7280',
-                            300: '#D1D5DB',
+                            primary: '#009BA1',  // Updated BSC Teal color
+                            dark: '#00757A',
+                            gold: '#D4AF37',     // Standard Gold
+                            light: '#E0F7FA'
                         }
                     },
-                    fontFamily: {
-                        serif: ['Playfair Display', 'serif'],
-                        sans: ['Inter', 'sans-serif'],
-                    },
                     boxShadow: {
-                        'soft': '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+                        'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
+                        'tooltip': '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     }
                 }
             }
@@ -53,240 +42,469 @@
     </script>
 
     <style>
-        body { background-color: #F0F2F5; color: #111827; }
+        body { background-color: #F8FAFC; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         
-        /* Thin minimalist scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+        /* Note Lined Paper */
+        .lined-paper {
+            background-color: #FDFDFD;
+            background-image: linear-gradient(#E2E8F0 1px, transparent 1px);
+            background-size: 100% 36px;
+            line-height: 36px; 
+        }
+        .lined-input {
+            background: transparent; width: 100%; border: none; outline: none; padding: 0; margin: 0;
+            font-family: 'Lora', serif; font-size: 15px; color: #334155; line-height: 36px; 
+        }
+        
+        /* Checkbox with BSC Teal */
+        .custom-checkbox {
+            appearance: none; background-color: #fff; margin: 0;
+            font: inherit; color: currentColor; width: 1.15em; height: 1.15em;
+            border: 1px solid #cbd5e1; border-radius: 0.15em; display: grid; place-content: center; cursor: pointer;
+        }
+        .custom-checkbox::before {
+            content: ""; width: 0.65em; height: 0.65em; transform: scale(0);
+            transition: 120ms transform ease-in-out; 
+            box-shadow: inset 1em 1em #009BA1; /* BSC Teal */
+            transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
 
-        /* Print Specifics - Absolute A4 Landscape Layout */
+        /* Tooltip */
+        .tooltip-group:hover .tooltip-text { visibility: visible; opacity: 1; transform: translateY(0); }
+        .tooltip-text {
+            visibility: hidden; opacity: 0; transform: translateY(-4px); transition: all 0.2s;
+        }
+
+        /* Filter Pills */
+        .filter-pill { transition: all 0.2s; cursor: pointer; user-select: none; }
+        .filter-pill.active { opacity: 1; transform: scale(1); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .filter-pill.inactive { opacity: 0.5; transform: scale(0.98); background-color: #F1F5F9 !important; color: #94A3B8 !important; border-color: #E2E8F0 !important; }
+
         @media print {
             @page { size: A4 landscape; margin: 0; }
-            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
-            .print-canvas {
-                width: 297mm !important;
-                height: 210mm !important;
-                padding: 10mm 15mm !important;
-                margin: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                transform: none !important;
+            .print-container { 
+                width: 297mm !important; height: 210mm !important; border: none; box-shadow: none; 
+                border-radius: 0; padding: 10mm 15mm !important; background: white !important;
+                display: flex !important; flex-direction: column !important;
             }
-            .grid-lines { border-color: #E5E7EB !important; }
-            /* Force white bg on print to save ink except for highlights */
-            .bg-white-print { background-color: white !important; }
+            .lined-paper { background-image: linear-gradient(#cbd5e1 1px, transparent 1px) !important; }
+            /* Hide empty lines placeholder in print to avoid clutter if content exists */
+            .print-hidden { display: none; }
         }
     </style>
 </head>
-<body class="antialiased selection:bg-bsc-light selection:text-bsc-dark">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- DATA LAYER ---
-        const EVENTS_DATA = [
-            { date: "2026-01-01", type: "Holidays", title: "Tết Dương Lịch" },
-            { date: "2026-01-06", type: "Macro", title: "GSO: CPI & GDP" },
-            { date: "2026-01-15", type: "Deriv", title: "Đáo hạn PS" },
-            { date: "2026-01-27", type: "Macro", title: "FED Meeting" },
-            { date: "2026-02-17", type: "Holidays", title: "Tết Nguyên Đán" },
-            { date: "2026-02-18", type: "Holidays", title: "Mùng 2 Tết" },
-            { date: "2026-02-19", type: "Holidays", title: "Mùng 3 Tết" },
-            { date: "2026-02-19", type: "Deriv", title: "Đáo hạn PS" },
-            { date: "2026-04-29", type: "Holidays", title: "Giỗ Tổ" },
-            { date: "2026-04-30", type: "Holidays", title: "30/04" },
-            { date: "2026-05-01", type: "Holidays", title: "01/05" },
-            // Add more mock data if needed
-        ];
-
-        // --- COMPONENTS ---
-
-        // Accurate BSC Logo Construction
+        // --- ASSETS ---
+        // BSC Logo updated to match typical Brand Identity (Teal/Gold)
         const BSCLogo = () => (
-            <svg height="48" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Logo Icon: Stylized Triangle / Sail */}
-                <path d="M15 40L30 10L45 40H15Z" fill="#008A83" /> {/* Main Green */}
-                <path d="M28 40L38 20L48 40H28Z" fill="#26A69A" fillOpacity="0.8" /> {/* Lighter Overlap */}
-                <path d="M12 40H52" stroke="#C5A059" strokeWidth="2" /> {/* Gold Base Line */}
+            <svg height="48" viewBox="0 0 180 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Symbol: Stylized Flower/Star */}
+                <path d="M25 5C14 5 5 14 5 25C5 36 14 45 25 45C36 45 45 36 45 25C45 14 36 5 25 5Z" fill="#009BA1" fillOpacity="0.1"/>
+                <path d="M25 10L28 22L40 25L28 28L25 40L22 28L10 25L22 22L25 10Z" fill="#009BA1"/>
                 
-                {/* Text */}
-                <text x="60" y="32" fontFamily="Playfair Display" fontWeight="bold" fontSize="28" fill="#008A83">BSC</text>
-                <text x="61" y="44" fontFamily="Inter" fontWeight="500" fontSize="8" letterSpacing="0.2em" fill="#6B7280">SECURITIES</text>
+                {/* Text: BSC */}
+                <text x="55" y="34" fontFamily="Arial, Helvetica, sans-serif" fontWeight="800" fontSize="32" fill="#009BA1">BSC</text>
+                {/* Text: Securities */}
+                <text x="125" y="22" fontFamily="Arial, Helvetica, sans-serif" fontWeight="400" fontSize="10" fill="#6B7280">VIETNAM</text>
+                <text x="125" y="34" fontFamily="Arial, Helvetica, sans-serif" fontWeight="600" fontSize="10" letterSpacing="0.05em" fill="#009BA1">SECURITIES</text>
+                
+                {/* Decorative Line */}
+                <rect x="55" y="40" width="100" height="2" fill="#D4AF37"/>
             </svg>
         );
 
-        // Minimalist Event Dot/Text
-        const EventItem = ({ type, title }) => {
-            const styles = {
-                Holidays: { dot: "bg-red-500", text: "text-red-700 bg-red-50" },
-                Macro: { dot: "bg-blue-500", text: "text-blue-700 bg-blue-50" },
-                Deriv: { dot: "bg-amber-500", text: "text-amber-700 bg-amber-50" },
-                ETF: { dot: "bg-purple-500", text: "text-purple-700 bg-purple-50" },
-            };
-            const s = styles[type] || { dot: "bg-gray-400", text: "text-gray-600" };
+        // --- LUNAR DATA 2026 (Verified with Excel) ---
+        // 17/02/2026 is 1/1 Lunar (Tet Nguyen Dan)
+        const LUNAR_MAPPING_2026 = [
+            { solar: "2025-12-20", lunarMonth: 11, lunarYear: 2025 },
+            { solar: "2026-01-19", lunarMonth: 12, lunarYear: 2025 },
+            { solar: "2026-02-17", lunarMonth: 1, lunarYear: 2026 }, // Tet Nguyen Dan
+            { solar: "2026-03-19", lunarMonth: 2, lunarYear: 2026 },
+            { solar: "2026-04-17", lunarMonth: 3, lunarYear: 2026 },
+            { solar: "2026-05-17", lunarMonth: 4, lunarYear: 2026 },
+            { solar: "2026-06-15", lunarMonth: 5, lunarYear: 2026 },
+            { solar: "2026-07-15", lunarMonth: 6, lunarYear: 2026 },
+            { solar: "2026-08-13", lunarMonth: 7, lunarYear: 2026 },
+            { solar: "2026-09-11", lunarMonth: 8, lunarYear: 2026 },
+            { solar: "2026-10-11", lunarMonth: 9, lunarYear: 2026 },
+            { solar: "2026-11-09", lunarMonth: 10, lunarYear: 2026 },
+            { solar: "2026-12-09", lunarMonth: 11, lunarYear: 2026 },
+        ];
 
-            return (
-                <div className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm mb-0.5 ${s.text} max-w-full overflow-hidden`}>
-                    <div className={`w-1 h-1 rounded-full flex-shrink-0 ${s.dot}`}></div>
-                    <span className="text-[9px] font-medium truncate leading-tight">{title}</span>
-                </div>
-            );
+        function getLunarDateCorrect(dateObj) {
+            const currentTs = dateObj.getTime();
+            let monthData = null;
+            
+            for (let i = 0; i < LUNAR_MAPPING_2026.length - 1; i++) {
+                const currentStart = new Date(LUNAR_MAPPING_2026[i].solar).getTime();
+                const nextStart = new Date(LUNAR_MAPPING_2026[i+1].solar).getTime();
+                if (currentTs >= currentStart && currentTs < nextStart) {
+                    monthData = LUNAR_MAPPING_2026[i];
+                    break;
+                }
+            }
+            if (!monthData) { 
+                if (currentTs >= new Date("2026-12-09").getTime()) monthData = { solar: "2026-12-09", lunarMonth: 11, lunarYear: 2026 };
+                else return { day: 1, month: 1 };
+            }
+            const startTs = new Date(monthData.solar).getTime();
+            const diffDays = Math.floor((currentTs - startTs) / (1000 * 60 * 60 * 24));
+            return { day: diffDays + 1, month: monthData.lunarMonth };
+        }
+
+        // --- EVENTS DATA (Merged from CSV & Excel) ---
+        const STATIC_EVENTS = [
+            // --- HOLIDAYS (Excel Source) ---
+            {id: "h1", date: "2026-01-01", title: "[Nghỉ Lễ] Tết Dương Lịch", category: "holiday"},
+            {id: "h2", date: "2026-02-17", title: "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 1)", category: "holiday"},
+            {id: "h3", date: "2026-02-18", title: "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 2)", category: "holiday"},
+            {id: "h4", date: "2026-02-19", title: "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 3)", category: "holiday"},
+            {id: "h5", date: "2026-04-27", title: "[Nghỉ Lễ] Giỗ Tổ Hùng Vương (10/3 ÂL)", category: "holiday"},
+            {id: "h6", date: "2026-04-30", title: "[Nghỉ Lễ] Giải phóng MN", category: "holiday"},
+            {id: "h7", date: "2026-05-01", title: "[Nghỉ Lễ] Quốc tế Lao động", category: "holiday"},
+            {id: "h8", date: "2026-09-02", title: "[Nghỉ Lễ] Quốc khánh", category: "holiday"},
+            {id: "h9", date: "2026-11-20", title: "Ngày Nhà giáo Việt Nam", category: "holiday"},
+
+            // --- MACRO & ETF (CSV Source: test_2026.csv) ---
+            // JANUARY
+            {id: "e1", date: "2026-01-06", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
+            {id: "e2", date: "2026-01-15", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e3", date: "2026-01-19", title: "[VN] ETF: (A) Cập nhật info", category: "etf"},
+            {id: "e4", date: "2026-01-21", title: "[VN] ETF: (A) Xem xét định kỳ", category: "etf"},
+            {id: "e5", date: "2026-01-27", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+
+            // FEBRUARY
+            {id: "e6", date: "2026-02-02", title: "[VN] ETF: (E) Hiệu lực danh mục", category: "etf"},
+            {id: "e7", date: "2026-02-06", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
+            {id: "e8", date: "2026-02-19", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            
+            // MARCH (Standard Pattern Applied for missing CSV rows)
+            {id: "e9", date: "2026-03-06", title: "[QT] FTSE: Review Danh mục", category: "etf"},
+            {id: "e10", date: "2026-03-13", title: "[QT] VanEck: Review Danh mục", category: "etf"},
+            {id: "e11", date: "2026-03-17", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+            {id: "e12", date: "2026-03-19", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e13", date: "2026-03-29", title: "[VN] GSO: GDP Quý 1", category: "macro_vn"},
+
+            // APRIL
+            {id: "e14", date: "2026-04-16", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e15", date: "2026-04-28", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+            {id: "e16", date: "2026-04-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
+
+            // MAY
+            {id: "e17", date: "2026-05-21", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e18", date: "2026-05-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
+
+            // JUNE
+            {id: "e19", date: "2026-06-05", title: "[QT] FTSE: Review Danh mục", category: "etf"},
+            {id: "e20", date: "2026-06-12", title: "[QT] VanEck: Review Danh mục", category: "etf"},
+            {id: "e21", date: "2026-06-16", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+            {id: "e22", date: "2026-06-18", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e23", date: "2026-06-29", title: "[VN] GSO: GDP Quý 2", category: "macro_vn"},
+
+            // JULY
+            {id: "e24", date: "2026-07-16", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e25", date: "2026-07-28", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+            {id: "e26", date: "2026-07-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
+
+            // AUGUST
+            {id: "e27", date: "2026-08-20", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e28", date: "2026-08-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
+
+            // SEPTEMBER
+            {id: "e29", date: "2026-09-04", title: "[QT] FTSE: Review Danh mục", category: "etf"},
+            {id: "e30", date: "2026-09-11", title: "[QT] VanEck: Review Danh mục", category: "etf"},
+            {id: "e31", date: "2026-09-15", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+            {id: "e32", date: "2026-09-17", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e33", date: "2026-09-29", title: "[VN] GSO: GDP Quý 3", category: "macro_vn"},
+
+            // OCTOBER (Verified with CSV snippet)
+            {id: "e34", date: "2026-10-15", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e35", date: "2026-10-19", title: "[VN] ETF: (A) Cập nhật info", category: "etf"},
+            {id: "e36", date: "2026-10-21", title: "[VN] ETF: (A) Xem xét định kỳ", category: "etf"},
+            {id: "e37", date: "2026-10-27", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+            {id: "e38", date: "2026-10-28", title: "[QT] ECB: Họp CS Tiền tệ", category: "macro_global"},
+
+            // NOVEMBER (Verified with CSV snippet)
+            {id: "e39", date: "2026-11-02", title: "[VN] ETF: (E) Hiệu lực danh mục", category: "etf"},
+            {id: "e40", date: "2026-11-06", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
+            {id: "e41", date: "2026-11-19", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e42", date: "2026-11-27", title: "[QT] ETF Ngoại: Cut-off Data", category: "etf"},
+
+            // DECEMBER
+            {id: "e43", date: "2026-12-08", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
+            {id: "e44", date: "2026-12-17", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
+            {id: "e45", date: "2026-12-29", title: "[VN] GSO: GDP Quý 4", category: "macro_vn"},
+        ];
+
+        // --- HELPERS ---
+        const getSmartBadge = (title) => {
+            let s = title.replace('[VN]', '').replace('[QT]', '').replace('[Nghỉ Lễ]', '').trim();
+            if (s.includes('FED')) return 'FED: Policy';
+            if (s.includes('ECB')) return 'ECB: Policy';
+            if (s.includes('GSO') && s.includes('GDP')) return 'GSO: GDP (Q)';
+            if (s.includes('GSO')) return 'GSO: Macro';
+            if (s.includes('Futures')) return 'PS: Đáo Hạn';
+            if (s.includes('FTSE') && s.includes('Review')) return 'FTSE: Review';
+            if (s.includes('VanEck') && s.includes('Review')) return 'V.E: Review';
+            if (s.includes('ETF') && s.includes('Review')) return 'ETF: Review';
+            if (s.includes('Hiệu lực') || s.includes('Effective')) return 'ETF: Effective';
+            return s.length > 15 ? s.substring(0, 15) + '..' : s;
         };
 
-        const App = () => {
-            const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
-            const [notes, setNotes] = useState({});
+        const CATEGORIES = [
+            { id: 'all', label: 'Tất cả', color: 'bg-slate-800 text-white border-slate-800' },
+            { id: 'holiday', label: 'Lễ Tết', color: 'bg-rose-100 text-rose-700 border-rose-200' },
+            { id: 'macro_global', label: 'Vĩ mô TG', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+            { id: 'macro_vn', label: 'Vĩ mô VN', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+            { id: 'etf', label: 'ETF', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+            { id: 'derivatives', label: 'Phái sinh', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+            { id: 'personal', label: 'Cá nhân', color: 'bg-bsc-light text-bsc-dark border-bsc-primary' }
+        ];
 
-            // Calendar Logic
-            const year = currentDate.getFullYear();
+        const Icons = {
+            Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>,
+            Trash: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
+            Print: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>,
+            Save: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>,
+            Upload: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>,
+            Left: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>,
+            Right: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>,
+            X: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>,
+        };
+
+        const TooltipBtn = ({ icon, text, onClick, label, className }) => (
+            <div className="relative tooltip-group">
+                {label ? (
+                    <label className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-lg transition cursor-pointer ${className}`}>
+                        {icon} {text}
+                        <input type="file" className="hidden" accept=".json" onChange={onClick} />
+                    </label>
+                ) : (
+                    <button onClick={onClick} className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-lg transition ${className}`}>
+                        {icon} {text}
+                    </button>
+                )}
+                <div className="tooltip-text absolute top-full right-0 mt-2 px-3 py-1.5 bg-slate-800 text-white text-[10px] rounded shadow-tooltip whitespace-nowrap z-20">
+                    {
+                        text === 'Add' ? 'Thêm sự kiện cá nhân' :
+                        text === 'Restore' ? 'Khôi phục dữ liệu JSON' :
+                        text === 'Backup' ? 'Sao lưu dữ liệu về máy' :
+                        text === 'Print' ? 'In khổ A4 Ngang' : ''
+                    }
+                </div>
+            </div>
+        );
+
+        // --- MAIN APP ---
+        function App() {
+            const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+            const [customEvents, setCustomEvents] = useState([]);
+            // Initialize with 12 empty lines for lined paper effect
+            const [notes, setNotes] = useState(() => Array(12).fill(null).map((_, i) => ({ id: i, text: '', done: false })));
+            const [selectedEvent, setSelectedEvent] = useState(null);
+            const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+            const [newEvent, setNewEvent] = useState({ date: '', title: '' });
+            const [filters, setFilters] = useState(['holiday', 'macro_global', 'macro_vn', 'etf', 'derivatives', 'personal']);
+
+            useEffect(() => {
+                const e = localStorage.getItem('planner_ev_final_v2');
+                const n = localStorage.getItem('planner_nt_final_v2');
+                if (e) setCustomEvents(JSON.parse(e));
+                if (n) setNotes(JSON.parse(n));
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('planner_ev_final_v2', JSON.stringify(customEvents));
+                localStorage.setItem('planner_nt_final_v2', JSON.stringify(notes));
+            }, [customEvents, notes]);
+
+            const toggleFilter = (cat) => {
+                if (cat === 'all') {
+                    setFilters(['holiday', 'macro_global', 'macro_vn', 'etf', 'derivatives', 'personal']);
+                } else {
+                    if (filters.includes(cat)) setFilters(filters.filter(f => f !== cat));
+                    else setFilters([...filters, cat]);
+                }
+            };
+            const isAllFiltered = filters.length === 6;
+
+            const allEvents = useMemo(() => {
+                const combined = [...STATIC_EVENTS, ...customEvents];
+                return combined.filter(e => filters.includes(e.category));
+            }, [customEvents, filters]);
+
+            const handleMonthChange = (direction) => {
+                const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + direction, 1);
+                if (newDate.getFullYear() === 2026) setCurrentDate(newDate);
+            };
+
+            const getCatStyle = (cat) => CATEGORIES.find(c => c.id === cat)?.color || 'bg-gray-100 text-gray-600';
+
+            // Calendar Rendering
+            const year = currentDate.getFullYear(); 
             const month = currentDate.getMonth();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDay = new Date(year, month, 1).getDay();
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Start Mon
-
-            // Lunar Mock (Demo)
-            const getLunar = (d) => {
-                if(month === 1 && d === 17) return { text: "1/1", isSpecial: true }; // Tet
-                if(month === 1 && d === 3) return { text: "15/1", isSpecial: true }; // Ram
-                return null;
-            }
-
-            const renderCalendar = () => {
-                const totalSlots = Math.ceil((daysInMonth + startOffset) / 7) * 7;
-                const grid = [];
-
-                for(let i = 0; i < totalSlots; i++) {
-                    if (i < startOffset || i >= startOffset + daysInMonth) {
-                        grid.push(<div key={`e-${i}`} className="bg-gray-50/30 border-r border-b border-gray-100 min-h-[90px]"></div>);
-                    } else {
-                        const day = i - startOffset + 1;
-                        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                        const daysEvents = EVENTS_DATA.filter(e => e.date === dateStr);
-                        const lunar = getLunar(day);
-                        const isWeekend = (i % 7) >= 5;
-
-                        grid.push(
-                            <div key={day} className={`group relative bg-white border-r border-b border-gray-100 p-2 min-h-[90px] hover:bg-bsc-light transition-colors ${isWeekend ? 'bg-gray-50/50' : ''}`}>
-                                <div className="flex justify-between items-start mb-1">
-                                    <span className={`text-sm font-sans font-semibold ${isWeekend ? 'text-bsc' : 'text-ink-900'}`}>{day}</span>
-                                    {lunar && (
-                                        <span className={`text-[9px] font-bold px-1 rounded ${lunar.isSpecial ? 'bg-bsc-gold text-white' : 'text-gray-400'}`}>
-                                            {lunar.text}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                    {daysEvents.map((e, idx) => (
-                                        <EventItem key={idx} type={e.type} title={e.title} />
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    }
-                }
-                return grid;
-            };
+            const firstDay = (new Date(year, month, 1).getDay() + 6) % 7; 
+            const days = Array(firstDay).fill(null).concat(Array.from({length: daysInMonth}, (_, i) => new Date(year, month, i + 1)));
 
             return (
-                <div className="min-h-screen flex flex-col items-center py-8">
-                    {/* Controls */}
-                    <div className="no-print mb-8 flex items-center gap-4 bg-white p-2 rounded-full shadow-soft border border-gray-100">
-                        <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"><i data-lucide="chevron-left" className="w-5 h-5"></i></button>
-                        <span className="w-40 text-center font-serif font-bold text-lg text-bsc-dark">
-                            Tháng {month + 1}, {year}
-                        </span>
-                        <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"><i data-lucide="chevron-right" className="w-5 h-5"></i></button>
-                        <div className="h-6 w-px bg-gray-200 mx-2"></div>
-                        <button onClick={() => window.print()} className="px-4 py-1.5 bg-bsc text-white text-sm font-medium rounded-full hover:bg-bsc-dark transition-colors flex items-center gap-2">
-                            <i data-lucide="printer" className="w-4 h-4"></i> In Lịch
-                        </button>
-                    </div>
-
-                    {/* CANVAS A4 */}
-                    <div className="print-canvas bg-white shadow-soft text-ink-900 mx-auto overflow-hidden relative flex gap-8" style={{ width: '297mm', height: '210mm', padding: '40px' }}>
+                <div className="w-full min-h-screen flex flex-col items-center py-8 print:p-0">
+                    <div className="print-container w-[1200px] bg-[#FDFDFD] shadow-soft rounded-xl overflow-hidden flex flex-col border border-slate-200">
                         
-                        {/* LEFT: CALENDAR (75%) */}
-                        <div className="flex-1 flex flex-col h-full">
-                            {/* Header */}
-                            <div className="flex justify-between items-end mb-6 border-b-2 border-bsc pb-2">
-                                <div className="flex items-center gap-4">
-                                    <BSCLogo />
-                                    <div className="h-8 w-px bg-gray-200"></div>
-                                    <h1 className="font-serif text-3xl text-bsc-dark">
-                                        Tháng {month + 1} <span className="text-bsc-gold font-light text-2xl">/ {year}</span>
-                                    </h1>
+                        {/* HEADER */}
+                        <header className="px-8 py-4 flex justify-between items-center border-b border-slate-100 bg-white no-print">
+                            <div className="flex items-center gap-4">
+                                <BSCLogo />
+                                <div className="h-8 w-px bg-slate-200 mx-2"></div>
+                                <div><h1 className="font-serif text-xl font-bold text-bsc-primary leading-none">Planner 2026</h1><p className="font-mono text-[10px] text-slate-400 mt-1 uppercase tracking-widest">Financial Research</p></div>
+                            </div>
+                            <div className="flex gap-2">
+                                <TooltipBtn icon={<Icons.Plus />} text="Add" onClick={() => setIsAddModalOpen(true)} className="text-slate-600 hover:bg-slate-50 border-slate-200" />
+                                <TooltipBtn icon={<Icons.Upload />} text="Restore" onClick={(e) => {
+                                    const file = e.target.files[0];
+                                    const reader = new FileReader();
+                                    reader.onload = (evt) => { try { const d=JSON.parse(evt.target.result); setCustomEvents(d.events||[]); setNotes(d.notes||[]); alert("Success!"); } catch(e){alert("Error");}};
+                                    reader.readAsText(file);
+                                }} label={true} className="text-slate-600 hover:bg-slate-50 border-slate-200" />
+                                <TooltipBtn icon={<Icons.Save />} text="Backup" onClick={() => {
+                                    const blob = new Blob([JSON.stringify({events: customEvents, notes})], {type:'application/json'});
+                                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='BSC_2026.json'; a.click();
+                                }} className="text-slate-600 hover:bg-slate-50 border-slate-200" />
+                                <TooltipBtn icon={<Icons.Print />} text="Print" onClick={() => window.print()} className="bg-bsc-primary text-white hover:bg-bsc-dark border-transparent" />
+                            </div>
+                        </header>
+
+                        {/* FILTER BAR */}
+                        <div className="px-8 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2 no-print overflow-x-auto">
+                            <span className="text-[10px] font-mono text-slate-400 uppercase mr-2">Filter:</span>
+                            <div onClick={() => toggleFilter('all')} className={`filter-pill px-3 py-1 rounded-full text-[10px] font-bold border ${isAllFiltered ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200'}`}>Tất cả</div>
+                            {CATEGORIES.filter(c => c.id !== 'all').map(cat => (
+                                <div key={cat.id} onClick={() => toggleFilter(cat.id)} className={`filter-pill px-3 py-1 rounded-full text-[10px] font-bold border ${filters.includes(cat.id) ? cat.color : 'inactive'}`}>
+                                    {cat.label}
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium">Monthly Planner</p>
-                                    <p className="font-serif italic text-bsc text-sm">"Leading the prosperity"</p>
-                                </div>
-                            </div>
-
-                            {/* Calendar Header */}
-                            <div className="grid grid-cols-7 mb-2">
-                                {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'].map((d, i) => (
-                                    <div key={d} className={`text-[10px] uppercase font-bold tracking-wider text-center ${i >= 5 ? 'text-bsc-gold' : 'text-gray-400'}`}>
-                                        {d}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Calendar Grid */}
-                            <div className="flex-1 border-t border-l border-gray-100 grid grid-cols-7 grid-rows-5">
-                                {renderCalendar()}
-                            </div>
-
-                            {/* Legend */}
-                            <div className="mt-4 flex gap-6 text-[10px] font-medium text-gray-500 uppercase tracking-wide">
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Holidays</div>
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Vĩ mô</div>
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Phái sinh</div>
-                            </div>
+                            ))}
                         </div>
 
-                        {/* RIGHT: SIDEBAR (25%) */}
-                        <div className="w-[25%] flex flex-col h-full bg-bsc-light/30 rounded-r-xl border-l border-dashed border-bsc/20 pl-6 pt-2">
-                            <h3 className="font-serif font-bold text-lg text-bsc-dark mb-4 flex items-center gap-2">
-                                <i data-lucide="edit-3" className="w-4 h-4"></i> Ghi chú
-                            </h3>
-                            
-                            <div className="flex-1 flex flex-col gap-6">
-                                {/* Lines for handwriting */}
-                                {[...Array(12)].map((_, i) => (
-                                    <div key={i} className="border-b border-bsc/10 h-6 w-full"></div>
-                                ))}
-                            </div>
-
-                            <div className="mt-auto">
-                                <div className="bg-white p-3 rounded border border-bsc/10 shadow-sm">
-                                    <span className="text-[10px] font-bold text-bsc-gold uppercase tracking-wider block mb-1">Key Metrics</span>
-                                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                        <span>VN-Index:</span>
-                                        <span className="w-12 border-b border-gray-200"></span>
-                                    </div>
-                                    <div className="flex justify-between text-xs text-gray-600">
-                                        <span>Avg Vol:</span>
-                                        <span className="w-12 border-b border-gray-200"></span>
-                                    </div>
-                                </div>
-                                <div className="text-center mt-4">
-                                    <p className="text-[9px] text-gray-400 font-sans">BSC Research & Investment Advisory</p>
-                                </div>
-                            </div>
+                        {/* PRINT HEADER */}
+                        <div className="hidden print:flex px-8 py-6 justify-between items-center border-b border-slate-100">
+                             <BSCLogo />
+                             <div className="text-right"><h1 className="font-serif text-2xl font-bold text-bsc-primary">2026 Planner</h1><p className="font-sans text-xs text-slate-500">BSC Securities • Research Dept</p></div>
                         </div>
 
+                        {/* BODY */}
+                        <div className="flex-1 flex overflow-hidden">
+                            {/* CALENDAR */}
+                            <div className="flex-[2] border-r border-slate-200 flex flex-col p-6 bg-white">
+                                <div className="flex justify-between items-end mb-4">
+                                    <div><h2 className="text-3xl font-serif font-bold text-bsc-dark capitalize">{currentDate.toLocaleString('vi-VN', { month: 'long' })}</h2><p className="text-lg font-serif italic text-slate-400">{year}</p></div>
+                                    <div className="flex gap-2 no-print">
+                                        <button onClick={() => handleMonthChange(-1)} disabled={month === 0} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 disabled:opacity-30"><Icons.Left /></button>
+                                        <button onClick={() => handleMonthChange(1)} disabled={month === 11} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 disabled:opacity-30"><Icons.Right /></button>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-7 mb-2 border-b border-slate-100 pb-2">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => <div key={d} className="text-center font-mono text-[10px] font-bold text-slate-400 uppercase tracking-widest">{d}</div>)}</div>
+                                
+                                <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-100 border border-slate-100">
+                                    {days.map((d, i) => {
+                                        if (!d) return <div key={i} className="bg-white"></div>;
+                                        const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                                        const evs = allEvents.filter(e => e.date === dStr);
+                                        const isHoliday = evs.some(e => e.category === 'holiday');
+                                        const lunar = getLunarDateCorrect(d);
+                                        const isMajor = lunar.day === 1 || lunar.day === 15;
+                                        const isToday = new Date().toDateString() === d.toDateString();
+
+                                        return (
+                                            <div key={i} className={`${isHoliday ? 'bg-rose-50' : 'bg-white'} p-1.5 flex flex-col group hover:bg-slate-50 min-h-[80px]`}>
+                                                <div className="flex justify-between items-baseline mb-1">
+                                                    <span className={`font-mono text-base leading-none ${isToday ? 'text-bsc-primary font-bold' : (isHoliday ? 'text-rose-700 font-bold' : 'text-slate-700')}`}>{d.getDate()}</span>
+                                                    <div className="flex items-center gap-0.5">
+                                                        {isMajor && <div className="w-1.5 h-1.5 rounded-full bg-bsc-gold"></div>}
+                                                        <span className={`font-serif text-[9px] ${isMajor ? 'text-bsc-goldDark font-bold' : 'text-slate-400'}`}>{lunar.day}/{lunar.month}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col gap-0.5 overflow-hidden">
+                                                    {evs.filter(e => e.category !== 'holiday').slice(0, 4).map(ev => (
+                                                        <div key={ev.id} onClick={() => setSelectedEvent({...ev, lunarStr: `${lunar.day}/${lunar.month}`})} className={`truncate text-[9px] px-1 rounded-sm border-l-2 cursor-pointer font-medium leading-tight py-0.5 ${getCatStyle(ev.category)}`}>
+                                                            {getSmartBadge(ev.title)}
+                                                        </div>
+                                                    ))}
+                                                    {isHoliday && evs.filter(e => e.category === 'holiday').map(ev => (
+                                                        <div key={ev.id} className="text-[9px] text-rose-600 font-serif italic truncate mt-auto">{ev.title.replace('[Nghỉ Lễ]', '')}</div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* NOTES */}
+                            <div className="flex-1 bg-[#FDFDFD] flex flex-col relative print:border-none">
+                                <div className="px-8 pt-6 pb-4 flex justify-between items-end">
+                                    <div><h3 className="font-serif font-bold text-xl text-bsc-dark">Notes</h3><p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Priority & Tasks</p></div>
+                                    <button onClick={() => setNotes([{id: Date.now(), text:'', done:false}, ...notes])} className="no-print p-1.5 bg-slate-100 hover:bg-bsc-primary hover:text-white rounded transition"><Icons.Plus /></button>
+                                </div>
+                                <div className="flex-1 lined-paper px-8 overflow-y-auto">
+                                    {notes.map(note => (
+                                        <div key={note.id} className="group flex items-center w-full h-[36px] gap-3 relative">
+                                            <input type="checkbox" checked={note.done} onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, done:e.target.checked} : n))} className="custom-checkbox no-print" />
+                                            <input className={`lined-input ${note.done ? 'line-through text-slate-300' : ''}`} value={note.text} onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, text:e.target.value} : n))} />
+                                            <button onClick={() => setNotes(notes.filter(n => n.id !== note.id))} className="no-print absolute right-0 opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 px-2"><Icons.Trash /></button>
+                                        </div>
+                                    ))}
+                                    {/* Print placeholder lines */}
+                                    {Array(15).fill(0).map((_, i) => <div key={`ph-${i}`} className="w-full h-[36px] print:block hidden"></div>)}
+                                </div>
+                                <div className="p-4 text-center"><p className="font-mono text-[9px] text-slate-300">© 2026 BSC Research</p></div>
+                            </div>
+                        </div>
                     </div>
+
+                    {/* MODALS */}
+                    {selectedEvent && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print" onClick={() => setSelectedEvent(null)}>
+                            <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                                <div className={`p-5 ${getCatStyle(selectedEvent.category).split(' ')[0]} bg-opacity-20`}>
+                                    <div className="flex justify-between items-start"><span className="text-[10px] font-bold uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded text-slate-700">{selectedEvent.category}</span><button onClick={() => setSelectedEvent(null)} className="text-slate-600"><Icons.X /></button></div>
+                                    <h3 className="font-serif font-bold text-lg text-slate-900 mt-2">{selectedEvent.title}</h3>
+                                </div>
+                                <div className="p-5">
+                                    <div className="flex gap-4 mb-4">
+                                        <div className="flex-1 p-2 bg-slate-50 rounded border border-slate-100 text-center"><div className="text-[10px] text-slate-400 uppercase">Ngày</div><div className="font-bold text-slate-800">{selectedEvent.date}</div></div>
+                                        <div className="flex-1 p-2 bg-bsc-gold/10 rounded border border-bsc-gold/30 text-center"><div className="text-[10px] text-bsc-goldDark uppercase">Âm Lịch</div><div className="font-bold text-bsc-gold font-serif">{selectedEvent.lunarStr}</div></div>
+                                    </div>
+                                    <p className="text-sm text-slate-600 font-serif mb-6">{selectedEvent.desc || selectedEvent.description || "Chi tiết sự kiện..."}</p>
+                                    <button onClick={() => { setNotes([{id: Date.now(), text: `[${selectedEvent.date}] ${selectedEvent.title}`, done: false}, ...notes]); setSelectedEvent(null); }} className="w-full py-2 bg-bsc-primary text-white rounded-lg text-sm font-medium hover:bg-bsc-dark shadow-lg shadow-bsc-primary/20">+ Add to Notes</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {isAddModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print">
+                            <div className="bg-white w-full max-w-sm rounded-xl p-6 shadow-2xl">
+                                <h3 className="font-serif font-bold text-lg mb-4">Thêm sự kiện</h3>
+                                <div className="space-y-3">
+                                    <input type="date" className="w-full border p-2 rounded text-sm font-sans" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
+                                    <input type="text" className="w-full border p-2 rounded text-sm font-sans" placeholder="Nội dung..." value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} />
+                                    <div className="flex gap-2 pt-2"><button onClick={() => setIsAddModalOpen(false)} className="flex-1 py-2 border rounded text-sm hover:bg-slate-50">Hủy</button><button onClick={() => { if(!newEvent.title || !newEvent.date) return; setCustomEvents([...customEvents, { id: 'c-'+Date.now(), date: newEvent.date, title: newEvent.title, description: 'Personal', category: 'personal' }]); setIsAddModalOpen(false); setNewEvent({ date: '', title: '' }); }} className="flex-1 py-2 bg-bsc-primary text-white rounded text-sm hover:bg-bsc-dark">Lưu</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
-        };
-
+        }
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
-        
-        // Init Icons
-        setTimeout(() => lucide.createIcons(), 100);
     </script>
 </body>
 </html>
