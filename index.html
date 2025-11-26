@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSC Analyst Planner 2026 (Official)</title>
+    <title>BSC Analyst Planner 2026 (Executive Edition)</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -26,16 +26,15 @@
                     },
                     colors: {
                         bsc: {
-                            primary: '#009BA1',  // BSC Brand Teal
-                            dark: '#00757A',
-                            gold: '#D4AF37',     // BSC Brand Gold
-                            light: '#E0F7FA',
-                            bg: '#F8FAFC'
+                            green: '#005F40', 
+                            gold: '#D4AF37',
+                            darkGold: '#B4941F',
+                            blue: '#2B5BA0'
                         }
                     },
                     boxShadow: {
                         'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
-                        'paper': '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
+                        'tooltip': '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     }
                 }
             }
@@ -45,19 +44,19 @@
     <style>
         body { background-color: #F8FAFC; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         
-        /* Note Lined Paper Effect */
+        /* Note Lined Paper */
         .lined-paper {
-            background-color: #FEFEFE;
+            background-color: #FDFDFD;
             background-image: linear-gradient(#E2E8F0 1px, transparent 1px);
-            background-size: 100% 32px;
-            line-height: 32px; 
+            background-size: 100% 36px;
+            line-height: 36px; 
         }
         .lined-input {
             background: transparent; width: 100%; border: none; outline: none; padding: 0; margin: 0;
-            font-family: 'Lora', serif; font-size: 14px; color: #334155; line-height: 32px; 
+            font-family: 'Lora', serif; font-size: 15px; color: #334155; line-height: 36px; 
         }
         
-        /* Custom Checkbox */
+        /* Checkbox */
         .custom-checkbox {
             appearance: none; background-color: #fff; margin: 0;
             font: inherit; color: currentColor; width: 1.15em; height: 1.15em;
@@ -65,27 +64,31 @@
         }
         .custom-checkbox::before {
             content: ""; width: 0.65em; height: 0.65em; transform: scale(0);
-            transition: 120ms transform ease-in-out; 
-            box-shadow: inset 1em 1em #009BA1; 
+            transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em #005F40;
             transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
         .custom-checkbox:checked::before { transform: scale(1); }
 
+        /* Tooltip */
+        .tooltip-group:hover .tooltip-text { visibility: visible; opacity: 1; transform: translateY(0); }
+        .tooltip-text {
+            visibility: hidden; opacity: 0; transform: translateY(-4px); transition: all 0.2s;
+        }
+
         /* Filter Pills */
         .filter-pill { transition: all 0.2s; cursor: pointer; user-select: none; }
         .filter-pill.active { opacity: 1; transform: scale(1); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .filter-pill.inactive { opacity: 0.5; transform: scale(0.98); background-color: #F1F5F9 !important; color: #94A3B8 !important; border-color: #E2E8F0 !important; }
+        .filter-pill.inactive { opacity: 0.4; transform: scale(0.98); background-color: #F1F5F9 !important; color: #94A3B8 !important; border-color: #E2E8F0 !important; }
 
         @media print {
             @page { size: A4 landscape; margin: 0; }
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
             .print-container { 
-                width: 297mm !important; height: 210mm !important; border: none; box-shadow: none; 
-                border-radius: 0; padding: 10mm 15mm !important; background: white !important;
-                display: flex !important; flex-direction: column !important;
+                width: 100vw; height: 100vh; border: none; box-shadow: none; 
+                border-radius: 0; padding: 5mm 10mm; background: white !important;
             }
-            .lined-paper { background-image: linear-gradient(#cbd5e1 1px, transparent 1px) !important; }
+            .lined-paper { background-image: linear-gradient(#94a3b8 1px, transparent 1px) !important; }
         }
     </style>
 </head>
@@ -95,397 +98,546 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- 1. ASSETS: BSC LOGO (Vectorized from website) ---
-        const BSCLogo = () => (
-            <svg height="46" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Symbol: Stylized Flower/Star based on BSC brand */}
-                <path d="M25 8L28 22L40 25L28 28L25 42L22 28L10 25L22 22L25 8Z" fill="#009BA1"/>
-                <circle cx="25" cy="25" r="4" fill="white"/>
-                
-                {/* Text: BSC */}
-                <text x="50" y="32" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="28" fill="#009BA1">BSC</text>
-                
-                {/* Divider Line */}
-                <rect x="52" y="38" width="80" height="2" fill="#D4AF37"/>
-                
-                {/* Subtext */}
-                <text x="52" y="48" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="7" letterSpacing="0.1em" fill="#6B7280">SECURITIES</text>
-            </svg>
-        );
+        // --- ASSETS ---
+        const LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABQBAMAAAAgtay6AAAAJFBMVEVHcEwmYakyZ6MnXKpIa5owX6bcpTwSq5ImXKspXKkRr5D8syaoW6H2AAAACHRSTlMAfEG4Ftu/ypTeOakAAAHmSURBVHic7ZVBTsQgFIafTkxKZjPqBRpPoPESLj0SmpjgjrjrrLqeG0x6OV+BR4ECM0Cixsy/aPnp+/hpYRiAi/6ottOsSnhqgLct8NQAb1vgqQHetsAKHFAHVE3wsRK2wRXwElwBL8GV8LEWJv0mvG+BDw3wvgU+BPCt0p1X1Hvuwbb2ISxI3HR0ytHjjftMs2MENhWdcS5Lz8JgBxa+j7gw2IW5ExxzsPrWAZxyguAxAQsTxYHK9V1ddwaGAN7RIBp+9Jwws+caHqNwZ8vBlhMECwx5mIMtp6Fm96HgMQ5DDjaN1bZewcKD3zx4TMDLO/fG8mUeYGA4Cdt97cAJGZg+rFrTvgAm9dbyYpjT7O3UC2DtXxxXMm2/oxDmXg+vgum9z18qcBd4Uwp3DqyH4ufDejc7ixTZnqdhvrgu+GGUwqIMFhEY7+85uFuVr4+hJGwXxx7YfHUAxmBnf6ryTzqB3aP39TQMOZeFab4pl4V9H3EZWA/eeY5lg1N/7nEX6lnL63vy3H2CvOiHNUgGA+AFm7MZrkDijQ0S29iFYtRYSfYMJArgGu9YiDCywOYBGTwqGL1MJWO1pGTQyQqWJhkGFp+2BIKZToZ5IjYZ+2U+eQA1skr+Ul9Aw/pVmbxJvfNF/1/falRpmEp4VcUAAAAASUVORK5CYII=";
 
-        // --- 2. LUNAR DATA 2026 (For Lunar Date Calculation) ---
-        const LUNAR_MAPPING_2026 = [
-            { solar: "2025-12-20", lunarMonth: 11, lunarYear: 2025 },
-            { solar: "2026-01-19", lunarMonth: 12, lunarYear: 2025 },
-            { solar: "2026-02-17", lunarMonth: 1, lunarYear: 2026 }, // Tet
-            { solar: "2026-03-19", lunarMonth: 2, lunarYear: 2026 },
-            { solar: "2026-04-17", lunarMonth: 3, lunarYear: 2026 },
-            { solar: "2026-05-17", lunarMonth: 4, lunarYear: 2026 },
-            { solar: "2026-06-15", lunarMonth: 5, lunarYear: 2026 },
-            { solar: "2026-07-15", lunarMonth: 6, lunarYear: 2026 },
-            { solar: "2026-08-13", lunarMonth: 7, lunarYear: 2026 },
-            { solar: "2026-09-11", lunarMonth: 8, lunarYear: 2026 },
-            { solar: "2026-10-11", lunarMonth: 9, lunarYear: 2026 },
-            { solar: "2026-11-09", lunarMonth: 10, lunarYear: 2026 },
-            { solar: "2026-12-09", lunarMonth: 11, lunarYear: 2026 },
+        // --- CSV DATA INTEGRATION ---
+        const CSV_EVENTS = [
+            {date: "2026-01-01", title: "Tết Dương Lịch", description: "Nghỉ lễ toàn quốc", category: "holiday"},
+            {date: "2026-01-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-01-15", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 1", category: "derivatives"},
+            {date: "2026-01-19", title: "ETF: Update VNDiamond, VNFIN LEAD", description: "Cập nhật thông tin ETF Nội", category: "etf"},
+            {date: "2026-01-21", title: "ETF: Review HOSE, VN50", description: "Xem xét định kỳ ETF Nội", category: "etf"},
+            {date: "2026-01-27", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-02-02", title: "ETF: Hiệu lực HOSE, VN50", description: "Hiệu lực danh mục ETF Nội", category: "etf"},
+            {date: "2026-02-04", title: "ECB Meeting", description: "Họp Chính sách tiền tệ", category: "qt-policy"},
+            {date: "2026-02-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-02-16", title: "Tết Nguyên Đán", description: "Dự kiến nghỉ 7 ngày (29 Tết - Mùng 5)", category: "holiday"},
+            {date: "2026-02-17", title: "Tết Nguyên Đán", description: "Nghỉ Tết", category: "holiday"},
+            {date: "2026-02-18", title: "Tết Nguyên Đán", description: "Nghỉ Tết", category: "holiday"},
+            {date: "2026-02-19", title: "Tết Nguyên Đán", description: "Nghỉ Tết (VN30 Futures dời lịch)", category: "holiday"},
+            {date: "2026-02-20", title: "Tết Nguyên Đán", description: "Nghỉ Tết", category: "holiday"},
+            {date: "2026-02-27", title: "FTSE Cut-off", description: "Chốt dữ liệu FTSE & MarketVector", category: "etf-global"},
+            {date: "2026-02-27", title: "FTSE GEIS: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-03-05", title: "ECB Meeting", description: "Họp Chính sách tiền tệ", category: "qt-policy"},
+            {date: "2026-03-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-03-13", title: "MarketVector: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-03-17", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-03-19", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 3", category: "derivatives"},
+            {date: "2026-03-23", title: "ETF Global: Hiệu lực", description: "MarketVector, FTSE30, STOXX, FTSE GEIS", category: "etf-global"},
+            {date: "2026-03-30", title: "⭐ FTSE: Công bố kế hoạch nâng hạng", description: "Interim Review - Sự kiện đặc biệt!", category: "ftse-special"},
+            {date: "2026-03-31", title: "ETF Nội: Cut-off Q2", description: "Chốt dữ liệu Quý 2 (Quan trọng cho dự báo)", category: "etf"},
+            {date: "2026-04-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-04-15", title: "ETF: Update VNX", description: "Cập nhật thông tin chi tiết", category: "etf"},
+            {date: "2026-04-16", title: "ECB Meeting", description: "Họp Chính sách tiền tệ", category: "qt-policy"},
+            {date: "2026-04-16", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 4", category: "derivatives"},
+            {date: "2026-04-20", title: "ETF: Review VNDiamond, VNX", description: "Xem xét định kỳ", category: "etf"},
+            {date: "2026-04-26", title: "Giỗ Tổ Hùng Vương", description: "10/3 ÂL - Nghỉ lễ", category: "holiday"},
+            {date: "2026-04-27", title: "Nghỉ bù Giỗ Tổ", description: "Nghỉ bù thứ 2", category: "holiday"},
+            {date: "2026-04-28", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-04-30", title: "30/4 Giải phóng MN", description: "Nghỉ lễ", category: "holiday"},
+            {date: "2026-05-01", title: "Quốc tế Lao động", description: "Nghỉ lễ 1/5", category: "holiday"},
+            {date: "2026-05-04", title: "ETF: Hiệu lực VNDiamond, VNX", description: "Hiệu lực danh mục", category: "etf"},
+            {date: "2026-05-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-05-21", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 5", category: "derivatives"},
+            {date: "2026-05-29", title: "FTSE Cut-off", description: "Chốt dữ liệu FTSE & MarketVector", category: "etf-global"},
+            {date: "2026-05-29", title: "FTSE GEIS: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-06-04", title: "ECB Meeting", description: "Họp Chính sách tiền tệ", category: "qt-policy"},
+            {date: "2026-06-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-06-12", title: "MarketVector: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-06-16", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-06-18", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 6", category: "derivatives"},
+            {date: "2026-06-22", title: "ETF Global: Hiệu lực", description: "MarketVector, FTSE GEIS", category: "etf-global"},
+            {date: "2026-06-30", title: "ETF Nội: Cut-off Q3", description: "Chốt dữ liệu Quý 3 (Quan trọng cho dự báo)", category: "etf"},
+            {date: "2026-07-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-07-15", title: "ETF: Review HOSE, VN50", description: "Xem xét định kỳ", category: "etf"},
+            {date: "2026-07-16", title: "ECB Meeting", description: "Họp Chính sách tiền tệ", category: "qt-policy"},
+            {date: "2026-07-16", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 7", category: "derivatives"},
+            {date: "2026-07-20", title: "ETF: VNFIN LEAD Update", description: "Cập nhật VNFIN LEAD", category: "etf"},
+            {date: "2026-07-28", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-08-03", title: "ETF: Hiệu lực HOSE, VN50", description: "Hiệu lực danh mục", category: "etf"},
+            {date: "2026-08-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-08-20", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 8", category: "derivatives"},
+            {date: "2026-08-28", title: "FTSE Cut-off", description: "Chốt dữ liệu FTSE", category: "etf-global"},
+            {date: "2026-08-28", title: "FTSE GEIS: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-08-31", title: "MarketVector Cut-off", description: "Chốt dữ liệu MarketVector", category: "etf-global"},
+            {date: "2026-09-02", title: "Quốc Khánh 2/9", description: "Nghỉ lễ Quốc Khánh", category: "holiday"},
+            {date: "2026-09-03", title: "Nghỉ bù Quốc Khánh", description: "Nghỉ lễ", category: "holiday"},
+            {date: "2026-09-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-09-10", title: "ECB Meeting", description: "Họp Chính sách tiền tệ", category: "qt-policy"},
+            {date: "2026-09-11", title: "MarketVector: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-09-15", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-09-17", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 9", category: "derivatives"},
+            {date: "2026-09-21", title: "🚀 FTSE NÂNG HẠNG CHÍNH THỨC", description: "VN-Index lên Secondary Emerging!", category: "ftse-special"},
+            {date: "2026-09-21", title: "ETF Global: Hiệu lực lớn", description: "MarketVector, FTSE30, STOXX", category: "etf-global"},
+            {date: "2026-09-30", title: "ETF Nội: Cut-off Q4", description: "Chốt dữ liệu Quý 4 (Quan trọng cho dự báo)", category: "etf"},
+            {date: "2026-10-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-10-15", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 10", category: "derivatives"},
+            {date: "2026-10-19", title: "ETF: Review VNDiamond, VNX", description: "Xem xét định kỳ", category: "etf"},
+            {date: "2026-10-21", title: "ETF: Update HOSE, VN50", description: "Cập nhật thông tin", category: "etf"},
+            {date: "2026-10-27", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-10-28", title: "ECB Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-11-02", title: "ETF: Hiệu lực VNDiamond, VNX", description: "Hiệu lực danh mục", category: "etf"},
+            {date: "2026-11-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-11-19", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 11", category: "derivatives"},
+            {date: "2026-11-27", title: "FTSE Cut-off", description: "Chốt dữ liệu FTSE", category: "etf-global"},
+            {date: "2026-11-27", title: "FTSE GEIS: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-11-30", title: "MarketVector Cut-off", description: "Chốt dữ liệu MarketVector", category: "etf-global"},
+            {date: "2026-12-06", title: "GSO: Báo cáo KT-XH", description: "Nguồn: Tổng cục Thống kê", category: "vn-macro"},
+            {date: "2026-12-08", title: "FED Meeting", description: "Họp Chính sách tiền tệ (2 ngày)", category: "qt-policy"},
+            {date: "2026-12-10", title: "ECB Meeting", description: "Họp Chính sách tiền tệ", category: "qt-policy"},
+            {date: "2026-12-11", title: "MarketVector: Danh mục mới", description: "ETF Ngoại", category: "etf-global"},
+            {date: "2026-12-17", title: "VN30 Futures Đáo hạn", description: "Đáo hạn Phái sinh Tháng 12", category: "derivatives"},
+            {date: "2026-12-21", title: "ETF Global: Hiệu lực", description: "MarketVector, FTSE GEIS", category: "etf-global"},
+            {date: "2026-12-31", title: "ETF Nội: Cut-off Q1/2027", description: "Chốt dữ liệu Quý 1/2027", category: "etf"}
         ];
 
-        function getLunarDate(dateObj) {
-            const currentTs = dateObj.getTime();
-            let monthData = null;
-            for (let i = 0; i < LUNAR_MAPPING_2026.length - 1; i++) {
-                const currentStart = new Date(LUNAR_MAPPING_2026[i].solar).getTime();
-                const nextStart = new Date(LUNAR_MAPPING_2026[i+1].solar).getTime();
-                if (currentTs >= currentStart && currentTs < nextStart) {
-                    monthData = LUNAR_MAPPING_2026[i];
-                    break;
-                }
+        // Convert to proper format with IDs
+        const FORMATTED_EVENTS = CSV_EVENTS.map((event, index) => ({
+            id: `csv-${index}`,
+            ...event
+        }));
+
+        // --- ICONS ---
+        const Icons = {
+            Calendar: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clipRule="evenodd" /></svg>,
+            Plus: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>,
+            X: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" /></svg>,
+            Trash: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 001.5.06l.3-7.5z" clipRule="evenodd" /></svg>,
+            Left: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" /></svg>,
+            Right: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" /></svg>,
+            Print: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.097 1.126.153A2.212 2.212 0 0118 8.653v4.097A2.25 2.25 0 0115.75 15h-.241l.305 1.984A1.75 1.75 0 0114.084 19H5.915a1.75 1.75 0 01-1.73-2.016L4.492 15H4.25A2.25 2.25 0 012 12.75V8.653c0-1.082.775-2.034 1.874-2.198.374-.056.75-.107 1.127-.153L5 6.25v-3.5zm8.5 3.397a41.533 41.533 0 00-7 0V2.75a.25.25 0 01.25-.25h6.5a.25.25 0 01.25.25v3.397zM6.608 12.5a.25.25 0 00-.247.212l-.693 4.5a.25.25 0 00.247.288h8.17a.25.25 0 00.246-.288l-.692-4.5a.25.25 0 00-.247-.212H6.608z" clipRule="evenodd" /></svg>,
+            Filter: () => <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clipRule="evenodd" /></svg>
+        };
+
+        // --- LUNAR CALENDAR ---
+        const PI = Math.PI;
+        
+        function jdFromDate(dd, mm, yy) {
+            const a = Math.floor((14 - mm) / 12);
+            const y = yy + 4800 - a;
+            const m = mm + 12*a - 3;
+            let jd = dd + Math.floor((153*m+2)/5) + 365*y + Math.floor(y/4) - Math.floor(y/100) + Math.floor(y/400) - 32045;
+            if (jd < 2299161) jd = dd + Math.floor((153*m+2)/5) + 365*y + Math.floor(y/4) - 32083;
+            return jd;
+        }
+        
+        function getNewMoon(k) {
+            const T = k/1236.85;
+            const T2 = T * T;
+            const T3 = T2 * T;
+            const dr = PI/180;
+            const Jd1 = 2415020.75933 + 29.53058868*k + 0.0001178*T2 - 0.000000155*T3;
+            const Jd1C = Jd1 + 0.00033*Math.sin((166.56 + 132.87*T - 0.009173*T2)*dr);
+            const M = 359.2242 + 29.10535608*k - 0.0000333*T2 - 0.00000347*T3;
+            const Mpr = 306.0253 + 385.81691806*k + 0.0107306*T2 + 0.00001236*T3;
+            const F = 21.2964 + 390.67050646*k - 0.0016528*T2 - 0.00000239*T3;
+            let C1 = (0.1734 - 0.000393*T)*Math.sin(M*dr) + 0.0021*Math.sin(2*dr*M);
+            C1 = C1 - 0.4068*Math.sin(Mpr*dr) + 0.0161*Math.sin(dr*2*Mpr);
+            C1 = C1 - 0.0004*Math.sin(dr*3*Mpr) + 0.0104*Math.sin(dr*2*F) - 0.0051*Math.sin(dr*(M+Mpr));
+            C1 = C1 - 0.0074*Math.sin(dr*(M-Mpr)) + 0.0004*Math.sin(dr*(2*F+M)) - 0.0004*Math.sin(dr*(2*F-M));
+            C1 = C1 - 0.0006*Math.sin(dr*(2*F+Mpr)) + 0.001*Math.sin(dr*(2*F-Mpr)) + 0.0005*Math.sin(dr*(2*Mpr+M));
+            return Math.floor(Jd1C + C1 + 0.5 + 7/24);
+        }
+        
+        function getSunLongitude(jdn) {
+            const T = (jdn - 2451545.5 - 7/24) / 36525;
+            const T2 = T*T;
+            const dr = PI/180;
+            const M = 357.52910 + 35999.05030*T - 0.0001559*T2 - 0.00000048*T*T2;
+            const L0 = 280.46645 + 36000.76983*T + 0.0003032*T2;
+            const DL = (1.914600 - 0.004817*T - 0.000014*T2)*Math.sin(dr*M) + (0.019993 - 0.000101*T)*Math.sin(dr*2*M) + 0.000290*Math.sin(dr*3*M);
+            const L = L0 + DL;
+            const omega = 125.04 - 1934.136 * T;
+            const LL = L - 0.00569 - 0.00478 * Math.sin(omega * dr);
+            return LL * dr;
+        }
+        
+        function getLunarMonth11(yy) {
+            const off = jdFromDate(31, 12, yy) - 2415021;
+            const k = Math.floor(off / 29.530588853);
+            const nm = getNewMoon(k);
+            const sunLong = getSunLongitude(nm);
+            if (sunLong >= 9) return getNewMoon(k-1);
+            return nm;
+        }
+        
+        function getLeapMonthOffset(a11) {
+            const k = Math.floor((a11 - 2415021.076998695) / 29.530588853 + 0.5);
+            let last = 0;
+            let i = 1;
+            let arc = getSunLongitude(getNewMoon(k+i));
+            
+            do {
+                last = arc;
+                i++;
+                arc = getSunLongitude(getNewMoon(k+i));
+            } while (arc !== last && i < 14);
+            
+            return i-1;
+        }
+        
+        function convertSolarToLunar(dd, mm, yy) {
+            const dayNumber = jdFromDate(dd, mm, yy);
+            const k = Math.floor((dayNumber - 2415021.076998695) / 29.530588853);
+            let monthStart = getNewMoon(k+1);
+            if (monthStart > dayNumber) monthStart = getNewMoon(k);
+            
+            let a11 = getLunarMonth11(yy);
+            let b11 = a11;
+            if (a11 >= monthStart) {
+                a11 = getLunarMonth11(yy-1);
+            } else {
+                b11 = getLunarMonth11(yy+1);
             }
-            if (!monthData) { 
-                if (currentTs >= new Date("2026-12-09").getTime()) monthData = { solar: "2026-12-09", lunarMonth: 11, lunarYear: 2026 };
-                else return { day: 1, month: 1 };
+            
+            const lunarDay = dayNumber - monthStart + 1;
+            const diff = Math.floor((monthStart - a11) / 29);
+            let lunarMonth = diff + 11;
+            
+            if (b11 - a11 > 365) {
+                const leapMonthDiff = getLeapMonthOffset(a11);
+                if (diff >= leapMonthDiff) lunarMonth = diff + 10;
             }
-            const startTs = new Date(monthData.solar).getTime();
-            const diffDays = Math.floor((currentTs - startTs) / (1000 * 60 * 60 * 24));
-            return { day: diffDays + 1, month: monthData.lunarMonth };
+            
+            if (lunarMonth > 12) lunarMonth = lunarMonth - 12;
+            if (lunarMonth >= 11 && diff < 4) lunarMonth -= 12;
+            
+            return { day: lunarDay, month: lunarMonth };
         }
 
-        // --- 3. EVENTS DATA (Google Calendar Logic + CSV Data) ---
-        const STATIC_EVENTS = [
-            // --- HOLIDAYS (Google Calendar Standards) ---
-            {id: "h1", date: "2026-01-01", title: "[Nghỉ Lễ] Tết Dương Lịch", category: "holiday"},
-            // Tet Nguyen Dan (Google: Feb 17, 18, 19)
-            {id: "h2", date: "2026-02-17", title: "[Nghỉ Lễ] Tết Nguyên Đán (M1)", category: "holiday"},
-            {id: "h3", date: "2026-02-18", title: "[Nghỉ Lễ] Tết Nguyên Đán (M2)", category: "holiday"},
-            {id: "h4", date: "2026-02-19", title: "[Nghỉ Lễ] Tết Nguyên Đán (M3)", category: "holiday"},
-            // Gio To Hung Vuong (Actual: Sun 26/4 -> Compensatory: Mon 27/4)
-            {id: "h5a", date: "2026-04-26", title: "Giỗ Tổ Hùng Vương (10/3)", category: "holiday_light"}, 
-            {id: "h5b", date: "2026-04-27", title: "[Nghỉ Lễ] Nghỉ bù Giỗ Tổ", category: "holiday"},
-            // 30/4 - 1/5
-            {id: "h6", date: "2026-04-30", title: "[Nghỉ Lễ] Giải phóng MN", category: "holiday"},
-            {id: "h7", date: "2026-05-01", title: "[Nghỉ Lễ] Quốc tế Lao động", category: "holiday"},
-            // Quoc Khanh
-            {id: "h8", date: "2026-09-02", title: "[Nghỉ Lễ] Quốc khánh", category: "holiday"},
-            
-            // --- MACRO & FINANCE (BSC Workflows) ---
-            // Jan
-            {id: "m1_1", date: "2026-01-06", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
-            {id: "m1_2", date: "2026-01-15", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m1_3", date: "2026-01-19", title: "[VN] ETF: (A) Cập nhật info", category: "etf"},
-            {id: "m1_4", date: "2026-01-21", title: "[VN] ETF: (A) Xem xét", category: "etf"},
-            {id: "m1_5", date: "2026-01-27", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            // Feb
-            {id: "m2_1", date: "2026-02-02", title: "[VN] ETF: (E) Hiệu lực", category: "etf"},
-            {id: "m2_2", date: "2026-02-06", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
-            {id: "m2_3", date: "2026-02-19", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            // Mar
-            {id: "m3_1", date: "2026-03-06", title: "[QT] FTSE: Review DM", category: "etf"},
-            {id: "m3_2", date: "2026-03-13", title: "[QT] VanEck: Review DM", category: "etf"},
-            {id: "m3_3", date: "2026-03-17", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            {id: "m3_4", date: "2026-03-19", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m3_5", date: "2026-03-29", title: "[VN] GSO: GDP Quý 1", category: "macro_vn"},
-            // Apr
-            {id: "m4_1", date: "2026-04-16", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m4_2", date: "2026-04-28", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            {id: "m4_3", date: "2026-04-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
-            // May
-            {id: "m5_1", date: "2026-05-21", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m5_2", date: "2026-05-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
-            // Jun
-            {id: "m6_1", date: "2026-06-05", title: "[QT] FTSE: Review DM", category: "etf"},
-            {id: "m6_2", date: "2026-06-12", title: "[QT] VanEck: Review DM", category: "etf"},
-            {id: "m6_3", date: "2026-06-16", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            {id: "m6_4", date: "2026-06-18", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m6_5", date: "2026-06-29", title: "[VN] GSO: GDP Quý 2", category: "macro_vn"},
-            // Jul
-            {id: "m7_1", date: "2026-07-16", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m7_2", date: "2026-07-28", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            {id: "m7_3", date: "2026-07-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
-            // Aug
-            {id: "m8_1", date: "2026-08-20", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m8_2", date: "2026-08-29", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
-            // Sep
-            {id: "m9_1", date: "2026-09-04", title: "[QT] FTSE: Review DM", category: "etf"},
-            {id: "m9_2", date: "2026-09-11", title: "[QT] VanEck: Review DM", category: "etf"},
-            {id: "m9_3", date: "2026-09-15", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            {id: "m9_4", date: "2026-09-17", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m9_5", date: "2026-09-29", title: "[VN] GSO: GDP Quý 3", category: "macro_vn"},
-            // Oct
-            {id: "m10_1", date: "2026-10-15", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m10_2", date: "2026-10-19", title: "[VN] ETF: (A) Cập nhật info", category: "etf"},
-            {id: "m10_3", date: "2026-10-21", title: "[VN] ETF: (A) Xem xét", category: "etf"},
-            {id: "m10_4", date: "2026-10-27", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            {id: "m10_5", date: "2026-10-28", title: "[QT] ECB: Họp CS Tiền tệ", category: "macro_global"},
-            // Nov
-            {id: "m11_1", date: "2026-11-02", title: "[VN] ETF: (E) Hiệu lực", category: "etf"},
-            {id: "m11_2", date: "2026-11-06", title: "[VN] GSO: Báo cáo KTXH", category: "macro_vn"},
-            {id: "m11_3", date: "2026-11-19", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m11_4", date: "2026-11-27", title: "[QT] ETF Ngoại: Cut-off Data", category: "etf"},
-            // Dec
-            {id: "m12_1", date: "2026-12-08", title: "[QT] FED: Họp CS Tiền tệ", category: "macro_global"},
-            {id: "m12_2", date: "2026-12-17", title: "[VN] Futures VN30 Đáo hạn", category: "derivatives"},
-            {id: "m12_3", date: "2026-12-29", title: "[VN] GSO: GDP Quý 4", category: "macro_vn"},
-        ];
+        function getLunarDateCorrect(date) {
+            return convertSolarToLunar(date.getDate(), date.getMonth()+1, date.getFullYear());
+        }
 
-        // --- 4. UTILS & HELPERS ---
-        const CATEGORIES = [
-            { id: 'all', label: 'Tất cả', color: 'bg-slate-800 text-white border-slate-800' },
-            { id: 'holiday', label: 'Lễ/Nghỉ', color: 'bg-rose-100 text-rose-700 border-rose-200' },
-            { id: 'macro_global', label: 'Vĩ mô TG', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
-            { id: 'macro_vn', label: 'Vĩ mô VN', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-            { id: 'etf', label: 'ETF', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-            { id: 'derivatives', label: 'Phái sinh', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-            { id: 'personal', label: 'Cá nhân', color: 'bg-bsc-light text-bsc-dark border-bsc-primary' }
-        ];
-
-        const getSmartBadge = (title) => {
-            let s = title.replace('[VN]', '').replace('[QT]', '').replace('[Nghỉ Lễ]', '').trim();
-            if (s.includes('FED')) return 'FED: Policy';
-            if (s.includes('ECB')) return 'ECB: Policy';
-            if (s.includes('GSO') && s.includes('GDP')) return 'GSO: GDP (Q)';
-            if (s.includes('GSO')) return 'GSO: Macro';
-            if (s.includes('Futures')) return 'PS: Đáo Hạn';
-            if (s.includes('ETF') && s.includes('Review')) return 'ETF: Review';
-            if (s.includes('FTSE')) return 'FTSE: Review';
-            if (s.includes('VanEck')) return 'V.E: Review';
-            if (s.includes('Hiệu lực')) return 'ETF: Effect';
-            return s.length > 15 ? s.substring(0, 15) + '..' : s;
-        };
-
-        // Icons SVG
-        const Icons = {
-            Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>,
-            Trash: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
-            Print: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>,
-            Save: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>,
-            Left: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>,
-            Right: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>,
-            X: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>,
-        };
-
-        // --- 5. MAIN APPLICATION ---
+        // --- MAIN COMPONENT ---
         function App() {
-            const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+            const [month, setMonth] = useState(new Date().getMonth());
+            const [notes, setNotes] = useState([]);
             const [customEvents, setCustomEvents] = useState([]);
-            const [notes, setNotes] = useState(() => Array(10).fill(null).map((_, i) => ({ id: i, text: '', done: false })));
             const [selectedEvent, setSelectedEvent] = useState(null);
             const [isAddModalOpen, setIsAddModalOpen] = useState(false);
             const [newEvent, setNewEvent] = useState({ date: '', title: '' });
-            const [filters, setFilters] = useState(['holiday', 'macro_global', 'macro_vn', 'etf', 'derivatives', 'personal']);
+            const [activeFilters, setActiveFilters] = useState({
+                'holiday': true,
+                'vn-macro': true,
+                'qt-policy': true,
+                'etf': true,
+                'etf-global': true,
+                'derivatives': true,
+                'ftse-special': true,
+                'personal': true
+            });
 
-            // LocalStorage Persistence
             useEffect(() => {
-                const e = localStorage.getItem('bsc_ev_2026');
-                const n = localStorage.getItem('bsc_nt_2026');
-                if (e) setCustomEvents(JSON.parse(e));
-                if (n) setNotes(JSON.parse(n));
+                const saved = localStorage.getItem('bsc-notes');
+                if (saved) setNotes(JSON.parse(saved));
+                const savedCustom = localStorage.getItem('bsc-custom-events');
+                if (savedCustom) setCustomEvents(JSON.parse(savedCustom));
             }, []);
 
             useEffect(() => {
-                localStorage.setItem('bsc_ev_2026', JSON.stringify(customEvents));
-                localStorage.setItem('bsc_nt_2026', JSON.stringify(notes));
-            }, [customEvents, notes]);
+                localStorage.setItem('bsc-notes', JSON.stringify(notes));
+            }, [notes]);
 
-            // Filtering
-            const toggleFilter = (cat) => {
-                if (cat === 'all') {
-                    setFilters(CATEGORIES.map(c => c.id).filter(id => id !== 'all'));
-                } else {
-                    if (filters.includes(cat)) setFilters(filters.filter(f => f !== cat));
-                    else setFilters([...filters, cat]);
+            useEffect(() => {
+                localStorage.setItem('bsc-custom-events', JSON.stringify(customEvents));
+            }, [customEvents]);
+
+            const handleMonthChange = (dir) => {
+                setMonth(prev => Math.max(0, Math.min(11, prev + dir)));
+            };
+
+            const getDaysInMonth = (m) => {
+                const year = 2026;
+                const firstDay = new Date(year, m, 1);
+                const lastDay = new Date(year, m + 1, 0);
+                const startPadding = (firstDay.getDay() + 6) % 7;
+                const days = [];
+                
+                for (let i = 0; i < startPadding; i++) days.push(null);
+                for (let i = 1; i <= lastDay.getDate(); i++) {
+                    days.push(new Date(year, m, i));
                 }
+                while (days.length % 7 !== 0) days.push(null);
+                
+                return days;
+            };
+
+            const getCatStyle = (cat) => {
+                const styles = {
+                    'holiday': 'bg-rose-50 text-rose-700 border-rose-400',
+                    'vn-macro': 'bg-blue-50 text-blue-700 border-blue-400',
+                    'qt-policy': 'bg-purple-50 text-purple-700 border-purple-400',
+                    'etf': 'bg-emerald-50 text-emerald-700 border-emerald-400',
+                    'etf-global': 'bg-teal-50 text-teal-700 border-teal-400',
+                    'derivatives': 'bg-orange-50 text-orange-700 border-orange-400',
+                    'ftse-special': 'bg-amber-50 text-amber-700 border-amber-400',
+                    'personal': 'bg-slate-50 text-slate-700 border-slate-400'
+                };
+                return styles[cat] || styles['personal'];
+            };
+
+            const getCatName = (cat) => {
+                const names = {
+                    'holiday': 'Lễ/Tết',
+                    'vn-macro': 'VN Macro',
+                    'qt-policy': 'Fed/ECB',
+                    'etf': 'ETF Nội',
+                    'etf-global': 'ETF Global',
+                    'derivatives': 'Phái sinh',
+                    'ftse-special': 'FTSE ⭐',
+                    'personal': 'Cá nhân'
+                };
+                return names[cat] || 'Other';
+            };
+
+            const getSmartBadge = (title) => {
+                if (title.includes('FTSE NÂNG HẠNG')) return '🚀 ' + title.replace('🚀 ', '');
+                if (title.includes('FTSE:')) return '⭐ ' + title.replace('⭐ ', '');
+                if (title.includes('FED') || title.includes('ECB')) return title;
+                if (title.includes('VN30 Futures')) return 'VN30F';
+                if (title.includes('GSO:')) return 'GSO';
+                if (title.includes('ETF:')) return title.replace('ETF: ', '');
+                if (title.includes('Cut-off')) return title.replace(' Cut-off', '');
+                return title.length > 20 ? title.substring(0, 20) + '...' : title;
             };
 
             const allEvents = useMemo(() => {
-                const combined = [...STATIC_EVENTS, ...customEvents];
-                return combined.filter(e => filters.includes(e.category) || (e.category === 'holiday_light' && filters.includes('holiday')));
-            }, [customEvents, filters]);
+                const all = [...FORMATTED_EVENTS, ...customEvents];
+                return all.filter(e => activeFilters[e.category]);
+            }, [customEvents, activeFilters]);
 
-            // Calendar Logic
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDay = (new Date(year, month, 1).getDay() + 6) % 7; 
-            const days = Array(firstDay).fill(null).concat(Array.from({length: daysInMonth}, (_, i) => new Date(year, month, i + 1)));
-
-            const handleMonthChange = (dir) => {
-                const newD = new Date(year, month + dir, 1);
-                if(newD.getFullYear() === 2026) setCurrentDate(newD);
-            }
+            const days = getDaysInMonth(month);
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthNamesVi = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+            
+            // Count events per category for the current month
+            const monthEventCounts = useMemo(() => {
+                const counts = {};
+                const monthStr = `2026-${String(month+1).padStart(2,'0')}`;
+                allEvents.filter(e => e.date.startsWith(monthStr)).forEach(e => {
+                    counts[e.category] = (counts[e.category] || 0) + 1;
+                });
+                return counts;
+            }, [allEvents, month]);
 
             return (
-                <div className="w-full min-h-screen flex flex-col items-center py-8 print:p-0">
-                    <div className="print-container w-[1100px] bg-white shadow-soft rounded-xl overflow-hidden flex flex-col border border-slate-200">
-                        
-                        {/* --- HEADER --- */}
-                        <header className="px-8 py-4 flex justify-between items-center border-b border-slate-100 no-print">
+                <div className="min-h-screen bg-slate-50 p-4">
+                    {/* HEADER */}
+                    <div className="max-w-7xl mx-auto mb-6 bg-white rounded-xl shadow-soft p-6 print:hidden">
+                        <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-4">
-                                <BSCLogo />
-                                <div className="h-8 w-px bg-slate-200 mx-2"></div>
+                                <img src={LOGO_BASE64} alt="BSC" className="h-10" />
                                 <div>
-                                    <h1 className="font-serif text-lg font-bold text-bsc-primary leading-none">Planner 2026</h1>
-                                    <p className="font-mono text-[10px] text-slate-400 mt-1 uppercase tracking-widest">Research Department</p>
+                                    <h1 className="font-serif font-bold text-2xl text-slate-900">BSC Analyst Planner 2026</h1>
+                                    <p className="font-mono text-xs text-slate-500 uppercase tracking-widest">Executive Financial Calendar</p>
                                 </div>
                             </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-lg hover:bg-slate-50 text-slate-600"><Icons.Plus /> Add Event</button>
-                                <button onClick={() => window.print()} className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-bsc-primary text-white rounded-lg hover:bg-bsc-dark"><Icons.Print /> Print</button>
-                            </div>
-                        </header>
-
-                        {/* --- FILTER BAR --- */}
-                        <div className="px-8 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2 no-print overflow-x-auto">
-                            <span className="text-[10px] font-mono text-slate-400 uppercase mr-2">Show:</span>
-                            <div onClick={() => toggleFilter('all')} className={`filter-pill px-3 py-1 rounded-full text-[10px] font-bold border ${filters.length >= 6 ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200'}`}>All</div>
-                            {CATEGORIES.filter(c => c.id !== 'all').map(cat => (
-                                <div key={cat.id} onClick={() => toggleFilter(cat.id)} className={`filter-pill px-3 py-1 rounded-full text-[10px] font-bold border ${filters.includes(cat.id) ? cat.color : 'inactive'}`}>
-                                    {cat.label}
-                                </div>
-                            ))}
+                            <button onClick={() => window.print()} className="px-4 py-2 bg-bsc-green text-white rounded-lg flex items-center gap-2 hover:bg-bsc-blue transition">
+                                <Icons.Print /> Print
+                            </button>
                         </div>
-
-                        {/* --- PRINT ONLY HEADER --- */}
-                        <div className="hidden print:flex px-8 py-6 justify-between items-center border-b border-slate-100">
-                             <BSCLogo />
-                             <div className="text-right">
-                                <h1 className="font-serif text-2xl font-bold text-bsc-primary">2026 Planner</h1>
-                                <p className="font-sans text-xs text-slate-500">Official Calendar • Research Dept</p>
-                             </div>
+                        
+                        {/* FILTERS */}
+                        <div className="flex flex-wrap gap-2">
+                            {Object.keys(activeFilters).map(cat => {
+                                const count = monthEventCounts[cat] || 0;
+                                return (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setActiveFilters(prev => ({...prev, [cat]: !prev[cat]}))}
+                                        className={`filter-pill px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-2 ${getCatStyle(cat)} ${activeFilters[cat] ? 'active' : 'inactive'}`}
+                                    >
+                                        <span>{getCatName(cat)}</span>
+                                        {count > 0 && <span className="bg-white/60 px-1.5 py-0.5 rounded-full text-[10px] font-bold">{count}</span>}
+                                    </button>
+                                );
+                            })}
                         </div>
+                    </div>
 
-                        {/* --- MAIN CONTENT --- */}
-                        <div className="flex-1 flex overflow-hidden">
-                            {/* LEFT: CALENDAR */}
-                            <div className="flex-[7] border-r border-slate-200 flex flex-col p-6 bg-white">
-                                <div className="flex justify-between items-end mb-4">
-                                    <div>
-                                        <h2 className="text-3xl font-serif font-bold text-bsc-dark capitalize">{currentDate.toLocaleString('vi-VN', { month: 'long' })}</h2>
-                                        <p className="text-lg font-serif italic text-slate-400">{year}</p>
+                    {/* MAIN CONTAINER */}
+                    <div className="max-w-7xl mx-auto print:max-w-none print:mx-0 print-container">
+                        <div className="bg-white rounded-xl shadow-soft print:shadow-none overflow-hidden flex h-[600px] print:h-full">
+                            {/* CALENDAR */}
+                            <div className="flex-[2] p-6 flex flex-col">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-baseline gap-3">
+                                        <h2 className="font-serif font-bold text-2xl text-slate-900">{monthNames[month]}</h2>
+                                        <span className="font-mono text-sm text-slate-500">{monthNamesVi[month]} / 2026</span>
                                     </div>
-                                    <div className="flex gap-2 no-print">
-                                        <button onClick={() => handleMonthChange(-1)} disabled={month===0} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 disabled:opacity-30"><Icons.Left /></button>
-                                        <button onClick={() => handleMonthChange(1)} disabled={month===11} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 disabled:opacity-30"><Icons.Right /></button>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setIsAddModalOpen(true)} className="no-print p-2 bg-bsc-green text-white rounded-lg hover:bg-bsc-blue transition"><Icons.Plus /></button>
+                                        <button onClick={() => handleMonthChange(-1)} disabled={month === 0} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 disabled:opacity-30"><Icons.Left /></button>
+                                        <button onClick={() => handleMonthChange(1)} disabled={month === 11} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 disabled:opacity-30"><Icons.Right /></button>
                                     </div>
                                 </div>
-
-                                {/* Calendar Grid */}
                                 <div className="grid grid-cols-7 mb-2 border-b border-slate-100 pb-2">
-                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => <div key={d} className="text-center font-mono text-[10px] font-bold text-slate-400 uppercase tracking-widest">{d}</div>)}
+                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => 
+                                        <div key={d} className="text-center font-mono text-[10px] font-bold text-slate-400 uppercase tracking-widest">{d}</div>
+                                    )}
                                 </div>
+                                
                                 <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-100 border border-slate-100">
                                     {days.map((d, i) => {
                                         if (!d) return <div key={i} className="bg-white"></div>;
                                         const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                                        const dayEvents = allEvents.filter(e => e.date === dStr);
-                                        const isHoliday = dayEvents.some(e => e.category === 'holiday');
-                                        const lunar = getLunarDate(d);
-                                        const isMajorLunar = lunar.day === 1 || lunar.day === 15;
+                                        const evs = allEvents.filter(e => e.date === dStr);
+                                        const isHoliday = evs.some(e => e.category === 'holiday');
+                                        const hasFTSE = evs.some(e => e.category === 'ftse-special');
+                                        const lunar = getLunarDateCorrect(d);
+                                        const isMajor = lunar.day === 1 || lunar.day === 15;
                                         const isToday = new Date().toDateString() === d.toDateString();
+                                        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
 
                                         return (
-                                            <div key={i} className={`p-1.5 flex flex-col group hover:bg-slate-50 min-h-[80px] ${isHoliday ? 'bg-rose-50/60' : 'bg-white'}`}>
+                                            <div key={i} className={`
+                                                ${hasFTSE ? 'bg-amber-50 border-2 border-amber-400' : 
+                                                  isHoliday ? 'bg-rose-50' : 
+                                                  isWeekend ? 'bg-slate-50' : 'bg-white'} 
+                                                p-1.5 flex flex-col group hover:bg-slate-50 min-h-[80px]
+                                            `}>
                                                 <div className="flex justify-between items-baseline mb-1">
-                                                    <span className={`font-mono text-base leading-none ${isToday ? 'text-bsc-primary font-bold' : (isHoliday ? 'text-rose-600 font-bold' : 'text-slate-700')}`}>{d.getDate()}</span>
+                                                    <span className={`font-mono text-base leading-none ${
+                                                        isToday ? 'text-bsc-green font-bold' : 
+                                                        hasFTSE ? 'text-amber-700 font-bold' :
+                                                        isHoliday ? 'text-rose-700 font-bold' : 
+                                                        'text-slate-700'
+                                                    }`}>{d.getDate()}</span>
                                                     <div className="flex items-center gap-0.5">
-                                                        {isMajorLunar && <div className="w-1.5 h-1.5 rounded-full bg-bsc-gold"></div>}
-                                                        <span className={`font-serif text-[9px] ${isMajorLunar ? 'text-bsc-goldDark font-bold' : 'text-slate-400'}`}>{lunar.day}/{lunar.month}</span>
+                                                        {isMajor && <div className="w-1.5 h-1.5 rounded-full bg-bsc-gold"></div>}
+                                                        <span className={`font-serif text-[9px] ${isMajor ? 'text-bsc-darkGold font-bold' : 'text-slate-400'}`}>
+                                                            {lunar.day}/{lunar.month}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col gap-0.5 overflow-hidden">
-                                                    {dayEvents.map(ev => {
-                                                        const style = CATEGORIES.find(c => c.id === ev.category)?.color || 'bg-gray-100 text-gray-600';
-                                                        if (ev.category === 'holiday' || ev.category === 'holiday_light') {
-                                                            return <div key={ev.id} className="text-[9px] text-rose-600 font-serif italic truncate mt-auto leading-tight">{ev.title.replace('[Nghỉ Lễ] ', '')}</div>
-                                                        }
-                                                        return (
-                                                            <div key={ev.id} onClick={() => setSelectedEvent({...ev, lunarStr: `${lunar.day}/${lunar.month}`})} className={`truncate text-[9px] px-1 rounded-[2px] cursor-pointer font-medium leading-tight py-0.5 border-l-2 ${style}`}>
-                                                                {getSmartBadge(ev.title)}
-                                                            </div>
-                                                        )
-                                                    })}
+                                                    {evs.filter(e => e.category === 'ftse-special').map(ev => (
+                                                        <div key={ev.id} onClick={() => setSelectedEvent({...ev, lunarStr: `${lunar.day}/${lunar.month}`})} 
+                                                            className="truncate text-[9px] px-1 rounded-sm border-l-2 cursor-pointer font-bold leading-tight py-0.5 bg-amber-100 text-amber-800 border-amber-500">
+                                                            {getSmartBadge(ev.title)}
+                                                        </div>
+                                                    ))}
+                                                    {evs.filter(e => e.category !== 'holiday' && e.category !== 'ftse-special').slice(0, 3).map(ev => (
+                                                        <div key={ev.id} onClick={() => setSelectedEvent({...ev, lunarStr: `${lunar.day}/${lunar.month}`})} 
+                                                            className={`truncate text-[9px] px-1 rounded-sm border-l-2 cursor-pointer font-medium leading-tight py-0.5 ${getCatStyle(ev.category)}`}>
+                                                            {getSmartBadge(ev.title)}
+                                                        </div>
+                                                    ))}
+                                                    {evs.length > 4 && evs.filter(e => e.category !== 'holiday').length > 3 && (
+                                                        <div className="text-[8px] text-slate-500 font-bold px-1">+{evs.length - 3} more</div>
+                                                    )}
+                                                    {isHoliday && evs.filter(e => e.category === 'holiday').map(ev => (
+                                                        <div key={ev.id} className="text-[9px] text-rose-600 font-serif italic truncate mt-auto">
+                                                            {ev.title.replace('[Nghỉ Lễ]', '').trim()}
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                        )
+                                        );
                                     })}
                                 </div>
                             </div>
 
-                            {/* RIGHT: NOTES */}
-                            <div className="flex-[3] bg-[#FDFDFD] flex flex-col relative print:border-none">
-                                <div className="px-6 pt-6 pb-4 flex justify-between items-end">
-                                    <div><h3 className="font-serif font-bold text-xl text-bsc-dark">Notes</h3><p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Priorities</p></div>
-                                    <button onClick={() => setNotes([{id: Date.now(), text:'', done:false}, ...notes])} className="no-print p-1.5 bg-slate-100 hover:bg-bsc-primary hover:text-white rounded transition"><Icons.Plus /></button>
+                            {/* NOTES */}
+                            <div className="flex-1 bg-[#FDFDFD] flex flex-col relative print:border-none">
+                                <div className="px-8 pt-6 pb-4 flex justify-between items-end">
+                                    <div>
+                                        <h3 className="font-serif font-bold text-xl text-slate-800">Notes</h3>
+                                        <p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Priority Tasks & Actions</p>
+                                    </div>
+                                    <button onClick={() => setNotes([{id: Date.now(), text:'', done:false}, ...notes])} className="no-print p-1.5 bg-slate-100 hover:bg-bsc-green hover:text-white rounded transition">
+                                        <Icons.Plus />
+                                    </button>
                                 </div>
-                                <div className="flex-1 lined-paper px-6 overflow-y-auto">
+                                <div className="flex-1 lined-paper px-8 overflow-y-auto">
                                     {notes.map(note => (
-                                        <div key={note.id} className="group flex items-center w-full h-[32px] gap-3 relative">
-                                            <input type="checkbox" checked={note.done} onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, done:e.target.checked} : n))} className="custom-checkbox no-print" />
-                                            <input className={`lined-input ${note.done ? 'line-through text-slate-300' : ''}`} value={note.text} onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, text:e.target.value} : n))} placeholder="..." />
-                                            <button onClick={() => setNotes(notes.filter(n => n.id !== note.id))} className="no-print absolute right-0 opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 px-2"><Icons.Trash /></button>
+                                        <div key={note.id} className="group flex items-center w-full h-[36px] gap-3 relative">
+                                            <input type="checkbox" checked={note.done} onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, done:e.target.checked} : n))} 
+                                                className="custom-checkbox no-print" />
+                                            <input className={`lined-input ${note.done ? 'line-through text-slate-300' : ''}`} 
+                                                value={note.text} 
+                                                onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, text:e.target.value} : n))} 
+                                                placeholder="Add task..." />
+                                            <button onClick={() => setNotes(notes.filter(n => n.id !== note.id))} 
+                                                className="no-print absolute right-0 opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 px-2">
+                                                <Icons.Trash />
+                                            </button>
                                         </div>
                                     ))}
-                                    {/* Print Placeholders */}
-                                    {Array(12).fill(0).map((_, i) => <div key={`ph-${i}`} className="w-full h-[32px] print:block hidden"></div>)}
+                                    {Array(15).fill(0).map((_, i) => <div key={i} className="w-full h-[36px] print:block hidden"></div>)}
                                 </div>
-                                <div className="p-4 text-center mt-auto"><p className="font-mono text-[9px] text-slate-300">© 2026 BSC Research</p></div>
+                                <div className="p-4 text-center">
+                                    <p className="font-mono text-[9px] text-slate-300">© 2026 BSC Research & Analysis</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* --- MODAL: EVENT DETAILS --- */}
+                    {/* MODALS */}
                     {selectedEvent && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print" onClick={() => setSelectedEvent(null)}>
                             <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-                                <div className={`p-5 bg-bsc-light border-b border-bsc-primary/20`}>
+                                <div className={`p-5 ${getCatStyle(selectedEvent.category).split(' ')[0]} bg-opacity-20`}>
                                     <div className="flex justify-between items-start">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2 py-0.5 rounded text-bsc-dark shadow-sm border border-bsc-primary/20">{selectedEvent.category}</span>
-                                        <button onClick={() => setSelectedEvent(null)} className="text-slate-500 hover:text-slate-800"><Icons.X /></button>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded text-slate-700">
+                                            {getCatName(selectedEvent.category)}
+                                        </span>
+                                        <button onClick={() => setSelectedEvent(null)} className="text-slate-600"><Icons.X /></button>
                                     </div>
-                                    <h3 className="font-serif font-bold text-lg text-bsc-dark mt-3 leading-snug">{selectedEvent.title}</h3>
+                                    <h3 className="font-serif font-bold text-lg text-slate-900 mt-2">{selectedEvent.title}</h3>
                                 </div>
                                 <div className="p-5">
                                     <div className="flex gap-4 mb-4">
                                         <div className="flex-1 p-2 bg-slate-50 rounded border border-slate-100 text-center">
-                                            <div className="text-[10px] text-slate-400 uppercase font-bold">Dương Lịch</div>
-                                            <div className="font-bold text-slate-800 text-lg">{selectedEvent.date.split('-').reverse().join('/')}</div>
+                                            <div className="text-[10px] text-slate-400 uppercase">Ngày</div>
+                                            <div className="font-bold text-slate-800">{selectedEvent.date}</div>
                                         </div>
-                                        <div className="flex-1 p-2 bg-amber-50 rounded border border-amber-100 text-center">
-                                            <div className="text-[10px] text-amber-600 uppercase font-bold">Âm Lịch</div>
-                                            <div className="font-bold text-amber-700 text-lg font-serif">{selectedEvent.lunarStr}</div>
+                                        <div className="flex-1 p-2 bg-bsc-gold/10 rounded border border-bsc-gold/30 text-center">
+                                            <div className="text-[10px] text-bsc-darkGold uppercase">Âm Lịch</div>
+                                            <div className="font-bold text-bsc-gold font-serif">{selectedEvent.lunarStr}</div>
                                         </div>
                                     </div>
-                                    <div className="pt-2">
-                                        <button onClick={() => { setNotes([{id: Date.now(), text: `[${selectedEvent.date.slice(5)}] ${selectedEvent.title}`, done: false}, ...notes]); setSelectedEvent(null); }} className="w-full py-2.5 bg-bsc-primary text-white rounded-lg text-sm font-semibold hover:bg-bsc-dark shadow-lg shadow-bsc-primary/20 transition-all active:scale-[0.98]">
-                                            + Add to Notes
-                                        </button>
-                                    </div>
+                                    <p className="text-sm text-slate-600 font-serif mb-6">{selectedEvent.desc || selectedEvent.description}</p>
+                                    <button onClick={() => { 
+                                        setNotes([{id: Date.now(), text: `[${selectedEvent.date}] ${selectedEvent.title}`, done: false}, ...notes]); 
+                                        setSelectedEvent(null); 
+                                    }} className="w-full py-2 bg-bsc-green text-white rounded-lg text-sm font-medium hover:bg-bsc-blue shadow-lg shadow-bsc-green/20">
+                                        + Add to Notes
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     )}
-
-                    {/* --- MODAL: ADD EVENT --- */}
+                    
                     {isAddModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print">
                             <div className="bg-white w-full max-w-sm rounded-xl p-6 shadow-2xl">
-                                <h3 className="font-serif font-bold text-lg mb-4 text-bsc-dark">Add New Event</h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
-                                        <input type="date" className="w-full border border-slate-300 p-2 rounded-lg text-sm font-sans focus:ring-2 focus:ring-bsc-primary focus:border-transparent outline-none" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Description</label>
-                                        <input type="text" className="w-full border border-slate-300 p-2 rounded-lg text-sm font-sans focus:ring-2 focus:ring-bsc-primary focus:border-transparent outline-none" placeholder="Meeting, Deadline..." value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} />
-                                    </div>
-                                    <div className="flex gap-3 pt-2">
-                                        <button onClick={() => setIsAddModalOpen(false)} className="flex-1 py-2.5 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 text-slate-600 transition">Cancel</button>
+                                <h3 className="font-serif font-bold text-lg mb-4">Thêm sự kiện</h3>
+                                <div className="space-y-3">
+                                    <input type="date" className="w-full border p-2 rounded text-sm font-sans" 
+                                        value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
+                                    <input type="text" className="w-full border p-2 rounded text-sm font-sans" 
+                                        placeholder="Nội dung..." value={newEvent.title} 
+                                        onChange={e => setNewEvent({...newEvent, title: e.target.value})} />
+                                    <div className="flex gap-2 pt-2">
+                                        <button onClick={() => setIsAddModalOpen(false)} 
+                                            className="flex-1 py-2 border rounded text-sm hover:bg-slate-50">Hủy</button>
                                         <button onClick={() => { 
                                             if(!newEvent.title || !newEvent.date) return; 
-                                            setCustomEvents([...customEvents, { id: 'c-'+Date.now(), date: newEvent.date, title: newEvent.title, category: 'personal' }]); 
+                                            setCustomEvents([...customEvents, { 
+                                                id: 'c-'+Date.now(), 
+                                                date: newEvent.date, 
+                                                title: newEvent.title, 
+                                                description: 'Personal event', 
+                                                category: 'personal' 
+                                            }]); 
                                             setIsAddModalOpen(false); 
                                             setNewEvent({ date: '', title: '' }); 
-                                        }} className="flex-1 py-2.5 bg-bsc-primary text-white rounded-lg text-sm font-bold hover:bg-bsc-dark shadow-lg shadow-bsc-primary/20 transition">Save Event</button>
+                                        }} className="flex-1 py-2 bg-bsc-green text-white rounded text-sm hover:bg-bsc-blue">
+                                            Lưu
+                                        </button>
                                     </div>
                                 </div>
                             </div>
