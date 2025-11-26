@@ -84,7 +84,6 @@
         const LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABQBAMAAAAgtay6AAAAJFBMVEVHcEwmYakyZ6MnXKpIa5owX6bcpTwSq5ImXKspXKkRr5D8syaoW6H2AAAACHRSTlMAfEG4Ftu/ypTeOakAAAHmSURBVHic7ZVBTsQgFIafTkxKZjPqBRpPoPESLj0SmpjgjrjrrLqeG0x6OV+BR4ECM0Cixsy/aPnp+/hpYRiAi/6ottOsSnhqgLct8NQAb1vgqQHetsAKHFAHVE3wsRK2wRXwElwBL8GV8LEWJv0mvG+BDw3wvgU+BPCt0p1X1Hvuwbb2ISxI3HR0ytHjjftMs2MENhWdcS5Lz8JgBxa+j7gw2IW5ExxzsPrWAZxyguAxAQsTxYHK9V1ddwaGAN7RIBp+9Jwws+caHqNwZ8vBlhMECwx5mIMtp6Fm96HgMQ5DDjaN1bZewcKD3zx4TMDLO/fG8mUeYGA4Cdt97cAJGZg+rFrTvgAm9dbyYpjT7O3UC2DtXxxXMm2/oxDmXg+vgum9z18qcBd4Uwp3DqyH4ufDejc7ixTZnqdhvrgu+GGUwqIMFhEY7+85uFuVr4+hJGwXxx7YfHUAxmBnf6ryTzqB3aP39TQMOZeFab4pl4V9H3EZWA/eeY5lg1N/7nEX6lnL63vy3H2CvOiHNUgGA+AFm7MZrkDijQ0S29iFYtRYSfYMJArgGu9YiDCywOYBGTwqGL1MJWO1pGTQyQqWJhkGFp+2BIKZToZ5IjYZ+2U+eQA1skr+Ul9Aw/pVmbxJvfNF/1/falRpmEp4VcUAAAAASUVORK5CYII=";
 
         // --- 1. LUNAR DATA ENGINE (2022-2032) ---
-        // Dữ liệu trích xuất chính xác từ file ICS của bạn (Mốc ngày dương của Mùng 1 Âm lịch)
         const LUNAR_ANCHORS = [
             {s:'2022-01-03',m:12},{s:'2022-02-01',m:1},{s:'2022-03-03',m:2},{s:'2022-04-01',m:3},{s:'2022-05-01',m:4},{s:'2022-05-30',m:5},{s:'2022-06-29',m:6},{s:'2022-07-29',m:7},{s:'2022-08-27',m:8},{s:'2022-09-26',m:9},{s:'2022-10-25',m:10},{s:'2022-11-24',m:11},{s:'2022-12-23',m:12},
             {s:'2023-01-22',m:1},{s:'2023-02-20',m:2},{s:'2023-03-22',m:2},{s:'2023-04-20',m:3},{s:'2023-05-19',m:4},{s:'2023-06-18',m:5},{s:'2023-07-18',m:6},{s:'2023-08-16',m:7},{s:'2023-09-15',m:8},{s:'2023-10-15',m:9},{s:'2023-11-13',m:10},{s:'2023-12-13',m:11},
@@ -96,26 +95,23 @@
             {s:'2029-01-15',m:12},{s:'2029-02-13',m:1},{s:'2029-03-15',m:2},{s:'2029-04-13',m:3},{s:'2029-05-13',m:4},{s:'2029-06-11',m:5},{s:'2029-07-11',m:6},{s:'2029-08-09',m:7},{s:'2029-09-08',m:8},{s:'2029-10-07',m:9},{s:'2029-11-06',m:10},{s:'2029-12-05',m:11},
             {s:'2030-01-04',m:12},{s:'2030-02-03',m:1},{s:'2030-03-04',m:2},{s:'2030-04-03',m:3},{s:'2030-05-03',m:4},{s:'2030-06-01',m:5},{s:'2030-07-01',m:6},{s:'2030-07-30',m:6},{s:'2030-08-29',m:7},{s:'2030-09-27',m:8},{s:'2030-10-27',m:9},{s:'2030-11-25',m:10},{s:'2030-12-25',m:11},
             {s:'2031-01-23',m:1},{s:'2031-02-22',m:2},{s:'2031-03-24',m:3},{s:'2031-04-22',m:4},{s:'2031-05-22',m:5},{s:'2031-06-20',m:6},{s:'2031-07-20',m:7},{s:'2031-08-18',m:8},{s:'2031-09-17',m:9},{s:'2031-10-16',m:10},{s:'2031-11-15',m:11},{s:'2031-12-14',m:12},
-            {s:'2032-01-13',m:12} // Anchor cuối
+            {s:'2032-01-13',m:12} 
         ];
 
         function getLunarDate(dateObj) {
             const currentTs = dateObj.getTime();
             let anchor = null;
-            
-            // Tìm mốc gần nhất trong quá khứ
             for (let i = 0; i < LUNAR_ANCHORS.length - 1; i++) {
                 const currStart = new Date(LUNAR_ANCHORS[i].s).getTime();
                 const nextStart = new Date(LUNAR_ANCHORS[i+1].s).getTime();
                 if (currentTs >= currStart && currentTs < nextStart) {
-                    anchor = LUNAR_ANCHORS[i];
-                    break;
+                    anchor = LUNAR_ANCHORS[i]; break;
                 }
             }
             if(!anchor && currentTs >= new Date(LUNAR_ANCHORS[LUNAR_ANCHORS.length-1].s).getTime()) {
                 anchor = LUNAR_ANCHORS[LUNAR_ANCHORS.length-1];
             }
-            if (!anchor) return { day: 1, month: 1 }; // Fallback
+            if (!anchor) return { day: 1, month: 1 };
 
             const startTs = new Date(anchor.s).getTime();
             const diffDays = Math.floor((currentTs - startTs) / (1000 * 60 * 60 * 24));
@@ -123,7 +119,6 @@
         }
 
         // --- 2. EVENTS DATA ENGINE ---
-        // Sự kiện tĩnh 2026 (Chi tiết)
         const EVENTS_2026 = [
             {"date":"2026-01-01","title":"[Nghỉ Lễ] Tết Dương Lịch","category":"holiday"},
             {"date":"2026-01-06","title":"[VN] GSO: Báo cáo KT-XH","category":"macro_vn"},
@@ -147,13 +142,11 @@
             {"date":"2026-09-15","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
             {"date":"2026-10-27","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
             {"date":"2026-12-08","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            // (Đã rút gọn để code không quá dài, nhưng bạn có thể restore full list ở đây)
+            // Dữ liệu mẫu (sẽ được bổ sung đầy đủ khi User restore)
         ];
 
-        // Hàm sinh sự kiện tự động cho các năm khác
         function generateAutoEvents(year) {
             const evs = [];
-            
             // 1. Phái sinh: Thứ 5 lần thứ 3 hàng tháng
             for(let m=0; m<12; m++) {
                 let d = new Date(year, m, 1);
@@ -173,25 +166,21 @@
                     d.setDate(d.getDate() + 1);
                 }
             }
-
-            // 2. Lễ Tết Dương Lịch & Cố định
+            // 2. Lễ Tết Dương Lịch
             evs.push({date:`${year}-01-01`, title:"[Nghỉ Lễ] Tết Dương Lịch", category:'holiday'});
             evs.push({date:`${year}-04-30`, title:"[Nghỉ Lễ] Giải phóng MN", category:'holiday'});
             evs.push({date:`${year}-05-01`, title:"[Nghỉ Lễ] Quốc tế Lao động", category:'holiday'});
             evs.push({date:`${year}-09-02`, title:"[Nghỉ Lễ] Quốc khánh", category:'holiday'});
 
-            // 3. Lễ Âm Lịch (Dùng Lunar Engine quét ngược - Hơi nặng nên chỉ tính các ngày chính)
-            // Cách đơn giản: Duyệt qua ngày dương trong năm, check Lunar
+            // 3. Lễ Âm Lịch (Quét sơ bộ)
             let start = new Date(year, 0, 1);
             let end = new Date(year, 11, 31);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const l = getLunarDate(d);
                 const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                
                 if (l.month === 1 && l.day === 1) evs.push({date:dStr, title:"[Nghỉ Lễ] Tết Nguyên Đán", category:'holiday'});
                 if (l.month === 3 && l.day === 10) evs.push({date:dStr, title:"[Nghỉ Lễ] Giỗ Tổ Hùng Vương", category:'holiday'});
             }
-            
             return evs;
         }
 
@@ -209,12 +198,13 @@
         const Icons = {
             Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>,
             Trash: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
-            Print: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>,
+            Print: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>,
             Save: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>,
             Upload: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>,
             Left: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>,
             Right: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>,
             X: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>,
+            Help: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.257 3.099c1.765-2.052 5.174-2.052 6.939 0 1.875 2.18 2.146 5.483 1.05 7.962-1.026 2.316-2.585 3.33-2.585 5.518v.794a.75.75 0 01-1.5 0v-.853c0-2.887 1.956-3.882 2.946-6.108.835-1.877.625-4.225-.794-5.877-1.314-1.528-3.83-1.528-5.144 0-1.42 1.651-1.63 3.999-.795 5.877.348.784.025 1.706-.723 2.054a.75.75 0 01-1.028-.354c-1.11-2.48-.824-5.782 1.05-7.962zM12 20.25a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z"/></svg>,
         };
 
         const TooltipBtn = ({ icon, text, onClick, label, className }) => (
@@ -242,6 +232,7 @@
             const [notes, setNotes] = useState(() => Array(10).fill(null).map((_, i) => ({ id: i, text: '', done: false })));
             const [selectedEvent, setSelectedEvent] = useState(null);
             const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+            const [isHelpOpen, setIsHelpOpen] = useState(false);
             const [newEvent, setNewEvent] = useState({ date: '', title: '' });
             const [filters, setFilters] = useState(['holiday', 'macro_global', 'macro_vn', 'etf', 'derivatives', 'personal']);
 
@@ -268,13 +259,8 @@
             const displayEvents = useMemo(() => {
                 const year = currentDate.getFullYear();
                 let yearEvents = [];
-                
-                if (year === 2026) {
-                    yearEvents = [...EVENTS_2026]; // Full static data for 2026
-                } else {
-                    yearEvents = generateAutoEvents(year); // Auto gen for others
-                }
-                
+                if (year === 2026) yearEvents = [...EVENTS_2026];
+                else yearEvents = generateAutoEvents(year);
                 const all = [...yearEvents, ...customEvents];
                 return all.filter(e => filters.includes(e.category));
             }, [currentDate, customEvents, filters]);
@@ -282,10 +268,7 @@
             // Handlers
             const handleMonthChange = (dir) => {
                 const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
-                // Giới hạn 2022 - 2032
-                if(newDate.getFullYear() >= 2022 && newDate.getFullYear() <= 2032) {
-                    setCurrentDate(newDate);
-                }
+                if(newDate.getFullYear() >= 2022 && newDate.getFullYear() <= 2032) setCurrentDate(newDate);
             };
 
             const handleRestore = (e) => {
@@ -332,6 +315,9 @@
                                     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download=`BSC_Planner_${year}.json`; a.click();
                                 }} className="text-slate-600 hover:bg-slate-50 border-slate-200" />
                                 <TooltipBtn icon={<Icons.Print />} text="Print" onClick={() => window.print()} className="bg-[#005F40] text-white hover:bg-[#004d34] border-transparent" />
+                                <button onClick={() => setIsHelpOpen(true)} className="flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 text-slate-500 hover:bg-slate-50 transition ml-2">
+                                    <Icons.Help />
+                                </button>
                             </div>
                         </header>
 
@@ -363,7 +349,7 @@
                                 </div>
                                 {year !== 2026 && (
                                     <div className="mb-2 px-3 py-1.5 bg-yellow-50 text-yellow-700 text-xs rounded border border-yellow-100 no-print flex items-center">
-                                        ⚠️ Sự kiện Vĩ mô/ETF năm {year} chưa có dữ liệu chi tiết. Chỉ hiển thị Lễ Tết & Phái sinh. <label className="underline cursor-pointer ml-1 font-bold"><input type="file" className="hidden" accept=".json" onChange={handleRestore} />Import JSON</label>
+                                        ⚠️ Sự kiện Vĩ mô/ETF năm {year} chưa có dữ liệu chi tiết. Chỉ hiển thị Lễ Tết & Phái sinh.
                                     </div>
                                 )}
                                 <div className="grid grid-cols-7 mb-2 border-b border-slate-100 pb-2">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => <div key={d} className="text-center font-mono text-[10px] font-bold text-slate-400 uppercase tracking-widest">{d}</div>)}</div>
@@ -424,7 +410,7 @@
                         </div>
                     </div>
 
-                    {/* MODALS */}
+                    {/* EVENT MODAL */}
                     {selectedEvent && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print" onClick={() => setSelectedEvent(null)}>
                             <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -442,6 +428,8 @@
                             </div>
                         </div>
                     )}
+
+                    {/* ADD MODAL */}
                     {isAddModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print">
                             <div className="bg-white w-full max-w-sm rounded-xl p-6 shadow-2xl">
@@ -450,6 +438,44 @@
                                     <input type="date" className="w-full border p-2 rounded text-sm font-sans" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
                                     <input type="text" className="w-full border p-2 rounded text-sm font-sans" placeholder="Nội dung..." value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} />
                                     <div className="flex gap-2 pt-2"><button onClick={() => setIsAddModalOpen(false)} className="flex-1 py-2 border rounded text-sm hover:bg-slate-50">Hủy</button><button onClick={() => { if(!newEvent.title || !newEvent.date) return; setCustomEvents([...customEvents, { id: 'c-'+Date.now(), date: newEvent.date, title: newEvent.title, description: 'Personal', category: 'personal' }]); setIsAddModalOpen(false); setNewEvent({ date: '', title: '' }); }} className="flex-1 py-2 bg-[#005F40] text-white rounded text-sm hover:bg-[#004d34]">Lưu</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* HELP MODAL */}
+                    {isHelpOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print" onClick={() => setIsHelpOpen(false)}>
+                            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-6 animate-[fadeIn_0.15s_ease-out]" onClick={e => e.stopPropagation()}>
+                                <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><Icons.Help /></div>
+                                        <div><h2 className="font-serif font-bold text-xl text-slate-800">Hướng dẫn sử dụng</h2><p className="text-xs text-slate-400">BSC Analyst Planner</p></div>
+                                    </div>
+                                    <button onClick={() => setIsHelpOpen(false)} className="text-slate-400 hover:text-slate-800"><Icons.X /></button>
+                                </div>
+                                <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
+                                    <div>
+                                        <h3 className="font-bold text-sm text-slate-800 mb-2 uppercase tracking-wider">1. Ý nghĩa màu sắc (Badges)</h3>
+                                        <div className="grid grid-cols-2 gap-2 text-xs">
+                                            <div className="flex items-center gap-2 p-2 bg-rose-50 rounded border border-rose-100"><div className="w-3 h-3 rounded-full bg-rose-500"></div><span>Lễ Tết / Sự kiện nghỉ</span></div>
+                                            <div className="flex items-center gap-2 p-2 bg-indigo-50 rounded border border-indigo-100"><div className="w-3 h-3 rounded-full bg-indigo-500"></div><span>Vĩ mô Thế giới (FED/ECB)</span></div>
+                                            <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded border border-emerald-100"><div className="w-3 h-3 rounded-full bg-emerald-500"></div><span>Vĩ mô VN (GDP/CPI)</span></div>
+                                            <div className="flex items-center gap-2 p-2 bg-amber-50 rounded border border-amber-100"><div className="w-3 h-3 rounded-full bg-amber-500"></div><span>Phái sinh (Đáo hạn)</span></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-sm text-slate-800 mb-2 uppercase tracking-wider">2. Chức năng chính</h3>
+                                        <ul className="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                                            <li><b>Lịch Âm:</b> Ngày <span className="text-[#D4AF37] font-bold">Mùng 1 & Rằm</span> sẽ có màu vàng và dấu chấm tròn.</li>
+                                            <li><b>Filter:</b> Bấm vào các viên thuốc (Pills) trên đầu lịch để ẩn/hiện từng loại sự kiện.</li>
+                                            <li><b>Backup/Restore:</b> Dùng để lưu dữ liệu khi chuyển máy (File JSON).</li>
+                                            <li><b>In ấn (Print):</b> Tự động ẩn thanh công cụ và tối ưu cho khổ giấy A4 Ngang.</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                        <p className="text-xs text-slate-500 italic">💡 <b>Mẹo Note:</b> Di chuột vào dòng note để hiện nút Xóa. Khi in ra giấy, phần note sẽ tự động thêm dòng kẻ mờ để bạn viết tay.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
