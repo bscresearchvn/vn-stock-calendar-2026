@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSC Multi-Year Planner (2022-2032)</title>
+    <title>BSC Multi-Year Planner (Final)</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -36,15 +36,19 @@
 
     <style>
         body { background-color: #F8FAFC; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        
+        /* Note Lined Paper */
         .lined-paper {
             background-color: #FDFDFD;
-            background-image: linear-gradient(#E2E8F0 1px, transparent 1px);
+            background-image: linear-gradient(#F1F5F9 1px, transparent 1px); /* Rất mờ */
             background-size: 100% 36px; line-height: 36px; 
         }
         .lined-input {
             background: transparent; width: 100%; border: none; outline: none; padding: 0; margin: 0;
             font-family: 'Lora', serif; font-size: 15px; color: #334155; line-height: 36px; 
         }
+        
+        /* Checkbox Custom (Web Display) */
         .custom-checkbox {
             appearance: none; background-color: #fff; margin: 0; width: 1.15em; height: 1.15em;
             border: 1px solid #cbd5e1; border-radius: 0.15em; display: grid; place-content: center; cursor: pointer;
@@ -55,9 +59,18 @@
             transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
         .custom-checkbox:checked::before { transform: scale(1); }
+
+        /* Print Checkbox (For Printing A4) */
+        .print-checkbox {
+            width: 14px; height: 14px; border: 1px solid #94A3B8; background: white;
+            display: inline-block; margin-right: 8px; flex-shrink: 0;
+        }
+
+        /* Tooltip */
         .tooltip-group:hover .tooltip-text { visibility: visible; opacity: 1; transform: translateY(0); }
         .tooltip-text { visibility: hidden; opacity: 0; transform: translateY(-4px); transition: all 0.2s; }
         
+        /* Filter Pills */
         .filter-pill { transition: all 0.2s; cursor: pointer; user-select: none; }
         .filter-pill.active { opacity: 1; transform: scale(1); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .filter-pill.inactive { opacity: 0.5; transform: scale(0.98); background-color: #F1F5F9 !important; color: #94A3B8 !important; border-color: #E2E8F0 !important; }
@@ -70,7 +83,9 @@
                 width: 100vw; height: 100vh; border: none; box-shadow: none; 
                 border-radius: 0; padding: 5mm 10mm; background: white !important;
             }
-            .lined-paper { background-image: linear-gradient(#94a3b8 1px, transparent 1px) !important; }
+            /* Dòng kẻ mờ hơn khi in */
+            .lined-paper { background-image: linear-gradient(#D1D5DB 1px, transparent 1px) !important; }
+            .note-line { display: flex; align-items: center; } /* Đảm bảo dòng note in ra là flex */
         }
     </style>
 </head>
@@ -83,7 +98,7 @@
         // --- ASSETS ---
         const LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABQBAMAAAAgtay6AAAAJFBMVEVHcEwmYakyZ6MnXKpIa5owX6bcpTwSq5ImXKspXKkRr5D8syaoW6H2AAAACHRSTlMAfEG4Ftu/ypTeOakAAAHmSURBVHic7ZVBTsQgFIafTkxKZjPqBRpPoPESLj0SmpjgjrjrrLqeG0x6OV+BR4ECM0Cixsy/aPnp+/hpYRiAi/6ottOsSnhqgLct8NQAb1vgqQHetsAKHFAHVE3wsRK2wRXwElwBL8GV8LEWJv0mvG+BDw3wvgU+BPCt0p1X1Hvuwbb2ISxI3HR0ytHjjftMs2MENhWdcS5Lz8JgBxa+j7gw2IW5ExxzsPrWAZxyguAxAQsTxYHK9V1ddwaGAN7RIBp+9Jwws+caHqNwZ8vBlhMECwx5mIMtp6Fm96HgMQ5DDjaN1bZewcKD3zx4TMDLO/fG8mUeYGA4Cdt97cAJGZg+rFrTvgAm9dbyYpjT7O3UC2DtXxxXMm2/oxDmXg+vgum9z18qcBd4Uwp3DqyH4ufDejc7ixTZnqdhvrgu+GGUwqIMFhEY7+85uFuVr4+hJGwXxx7YfHUAxmBnf6ryTzqB3aP39TQMOZeFab4pl4V9H3EZWA/eeY5lg1N/7nEX6lnL63vy3H2CvOiHNUgGA+AFm7MZrkDijQ0S29iFYtRYSfYMJArgGu9YiDCywOYBGTwqGL1MJWO1pGTQyQqWJhkGFp+2BIKZToZ5IjYZ+2U+eQA1skr+Ul9Aw/pVmbxJvfNF/1/falRpmEp4VcUAAAAASUVORK5CYII=";
 
-        // --- 1. LUNAR DATA ENGINE (2022-2032) ---
+        // --- LUNAR DATA ENGINE (2022-2032) ---
         const LUNAR_ANCHORS = [
             {s:'2022-01-03',m:12},{s:'2022-02-01',m:1},{s:'2022-03-03',m:2},{s:'2022-04-01',m:3},{s:'2022-05-01',m:4},{s:'2022-05-30',m:5},{s:'2022-06-29',m:6},{s:'2022-07-29',m:7},{s:'2022-08-27',m:8},{s:'2022-09-26',m:9},{s:'2022-10-25',m:10},{s:'2022-11-24',m:11},{s:'2022-12-23',m:12},
             {s:'2023-01-22',m:1},{s:'2023-02-20',m:2},{s:'2023-03-22',m:2},{s:'2023-04-20',m:3},{s:'2023-05-19',m:4},{s:'2023-06-18',m:5},{s:'2023-07-18',m:6},{s:'2023-08-16',m:7},{s:'2023-09-15',m:8},{s:'2023-10-15',m:9},{s:'2023-11-13',m:10},{s:'2023-12-13',m:11},
@@ -104,78 +119,37 @@
             for (let i = 0; i < LUNAR_ANCHORS.length - 1; i++) {
                 const currStart = new Date(LUNAR_ANCHORS[i].s).getTime();
                 const nextStart = new Date(LUNAR_ANCHORS[i+1].s).getTime();
-                if (currentTs >= currStart && currentTs < nextStart) {
-                    anchor = LUNAR_ANCHORS[i]; break;
-                }
+                if (currentTs >= currStart && currentTs < nextStart) { anchor = LUNAR_ANCHORS[i]; break; }
             }
-            if(!anchor && currentTs >= new Date(LUNAR_ANCHORS[LUNAR_ANCHORS.length-1].s).getTime()) {
-                anchor = LUNAR_ANCHORS[LUNAR_ANCHORS.length-1];
-            }
+            if(!anchor && currentTs >= new Date(LUNAR_ANCHORS[LUNAR_ANCHORS.length-1].s).getTime()) { anchor = LUNAR_ANCHORS[LUNAR_ANCHORS.length-1]; }
             if (!anchor) return { day: 1, month: 1 };
-
-            const startTs = new Date(anchor.s).getTime();
-            const diffDays = Math.floor((currentTs - startTs) / (1000 * 60 * 60 * 24));
+            const diffDays = Math.floor((currentTs - new Date(anchor.s).getTime()) / (1000 * 60 * 60 * 24));
             return { day: diffDays + 1, month: anchor.m };
         }
 
         // --- 2. EVENTS DATA ENGINE ---
         const EVENTS_2026 = [
-            {"date":"2026-01-01","title":"[Nghỉ Lễ] Tết Dương Lịch","category":"holiday"},
-            {"date":"2026-01-06","title":"[VN] GSO: Báo cáo KT-XH","category":"macro_vn"},
-            {"date":"2026-01-15","title":"[VN] Futures Đáo hạn T1","category":"derivatives"},
-            {"date":"2026-01-27","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            {"date":"2026-02-17","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"},
-            {"date":"2026-02-18","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"},
-            {"date":"2026-02-19","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"},
-            {"date":"2026-02-20","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"},
-            {"date":"2026-02-21","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"},
-            {"date":"2026-03-04","title":"[QT] FTSE: Review","category":"etf"},
-            {"date":"2026-03-17","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            {"date":"2026-03-19","title":"[VN] Futures Đáo hạn T3","category":"derivatives"},
-            {"date":"2026-04-27","title":"[Nghỉ Lễ] Giỗ Tổ Hùng Vương","category":"holiday"},
-            {"date":"2026-04-30","title":"[Nghỉ Lễ] Giải phóng MN","category":"holiday"},
-            {"date":"2026-05-01","title":"[Nghỉ Lễ] Quốc tế Lao động","category":"holiday"},
-            {"date":"2026-06-16","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            {"date":"2026-07-28","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            {"date":"2026-09-02","title":"[Nghỉ Lễ] Quốc khánh","category":"holiday"},
-            {"date":"2026-09-03","title":"[Nghỉ Lễ] Quốc khánh (bù)","category":"holiday"},
-            {"date":"2026-09-15","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            {"date":"2026-10-27","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            {"date":"2026-12-08","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
+            {"date":"2026-01-01","title":"[Nghỉ Lễ] Tết Dương Lịch","category":"holiday"}, {"date":"2026-01-06","title":"[VN] GSO: Báo cáo KT-XH","category":"macro_vn"}, {"date":"2026-01-15","title":"[VN] Futures Đáo hạn T1","category":"derivatives"}, {"date":"2026-01-27","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-02-17","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-18","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-19","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-20","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-21","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-03-04","title":"[QT] FTSE: Review","category":"etf"}, {"date":"2026-03-17","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-03-19","title":"[VN] Futures Đáo hạn T3","category":"derivatives"}, {"date":"2026-04-27","title":"[Nghỉ Lễ] Giỗ Tổ Hùng Vương","category":"holiday"}, {"date":"2026-04-30","title":"[Nghỉ Lễ] Giải phóng MN","category":"holiday"}, {"date":"2026-05-01","title":"[Nghỉ Lễ] Quốc tế Lao động","category":"holiday"}, {"date":"2026-06-16","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-07-28","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-09-02","title":"[Nghỉ Lễ] Quốc khánh","category":"holiday"}, {"date":"2026-09-03","title":"[Nghỉ Lễ] Quốc khánh (bù)","category":"holiday"}, {"date":"2026-09-15","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-10-27","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-12-08","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
             // Dữ liệu mẫu (sẽ được bổ sung đầy đủ khi User restore)
         ];
 
         function generateAutoEvents(year) {
             const evs = [];
-            // 1. Phái sinh: Thứ 5 lần thứ 3 hàng tháng
-            for(let m=0; m<12; m++) {
-                let d = new Date(year, m, 1);
-                let count = 0;
+            for(let m=0; m<12; m++) { // Derivatives
+                let d = new Date(year, m, 1); let count = 0;
                 while(d.getMonth() === m) {
-                    if(d.getDay() === 4) { // Thứ 5
-                        count++;
-                        if(count === 3) {
-                            evs.push({
-                                date: `${year}-${String(m+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
-                                title: `[VN] Futures Đáo hạn T${m+1}`,
-                                category: 'derivatives'
-                            });
-                            break;
-                        }
-                    }
+                    if(d.getDay() === 4) { count++; if(count === 3) { evs.push({ date: `${year}-${String(m+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`, title: `[VN] Futures Đáo hạn T${m+1}`, category: 'derivatives' }); break; } }
                     d.setDate(d.getDate() + 1);
                 }
             }
-            // 2. Lễ Tết Dương Lịch
+            // Holidays
             evs.push({date:`${year}-01-01`, title:"[Nghỉ Lễ] Tết Dương Lịch", category:'holiday'});
             evs.push({date:`${year}-04-30`, title:"[Nghỉ Lễ] Giải phóng MN", category:'holiday'});
             evs.push({date:`${year}-05-01`, title:"[Nghỉ Lễ] Quốc tế Lao động", category:'holiday'});
             evs.push({date:`${year}-09-02`, title:"[Nghỉ Lễ] Quốc khánh", category:'holiday'});
-
-            // 3. Lễ Âm Lịch (Quét sơ bộ)
             let start = new Date(year, 0, 1);
             let end = new Date(year, 11, 31);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) { // Lunar holidays
                 const l = getLunarDate(d);
                 const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 if (l.month === 1 && l.day === 1) evs.push({date:dStr, title:"[Nghỉ Lễ] Tết Nguyên Đán", category:'holiday'});
@@ -194,7 +168,15 @@
             { id: 'derivatives', label: 'Phái sinh', color: 'bg-amber-100 text-amber-700 border-amber-200' },
             { id: 'personal', label: 'Cá nhân', color: 'bg-sky-100 text-sky-700 border-sky-200' }
         ];
-
+        const getCatStyle = (cat) => CATEGORIES.find(c => c.id === cat)?.color || 'bg-gray-100 text-gray-600';
+        const getSmartBadge = (title) => {
+            let s = title.replace(/\[VN\]|\[QT\]|\[Nghỉ Lễ\]/g, '').trim();
+            if(s.includes('FED')) return 'FED: Policy'; if(s.includes('ECB')) return 'ECB: Policy';
+            if(s.includes('GSO') && s.includes('GDP')) return 'GSO: GDP (Q)'; if(s.includes('GSO')) return 'GSO: Macro';
+            if(s.includes('Futures')) return 'PS: Đáo Hạn'; if(s.includes('ETF') && (s.includes('Review') || s.includes('Cập nhật'))) return 'ETF: Review';
+            if(s.includes('Hiệu lực') || s.includes('Effective')) return 'ETF: Effective'; if(s.length > 18) return s.substring(0, 18) + '..';
+            return s;
+        };
         const Icons = {
             Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>,
             Trash: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
@@ -207,27 +189,33 @@
             Help: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.257 3.099c1.765-2.052 5.174-2.052 6.939 0 1.875 2.18 2.146 5.483 1.05 7.962-1.026 2.316-2.585 3.33-2.585 5.518v.794a.75.75 0 01-1.5 0v-.853c0-2.887 1.956-3.882 2.946-6.108.835-1.877.625-4.225-.794-5.877-1.314-1.528-3.83-1.528-5.144 0-1.42 1.651-1.63 3.999-.795 5.877.348.784.025 1.706-.723 2.054a.75.75 0 01-1.028-.354c-1.11-2.48-.824-5.782 1.05-7.962zM12 20.25a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z"/></svg>,
         };
 
-        const TooltipBtn = ({ icon, text, onClick, label, className }) => (
-            <div className="relative tooltip-group">
+        const TooltipBtn = ({ icon, text, onClick, label, className, isHelp = false }) => (
+            <div className={`relative tooltip-group ${isHelp ? '' : 'inline-block'}`}>
                 {label ? (
                     <label className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-lg transition cursor-pointer ${className}`}>
                         {icon} {text}
                         <input type="file" className="hidden" accept=".json" onChange={onClick} />
                     </label>
                 ) : (
-                    <button onClick={onClick} className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border rounded-lg transition ${className}`}>
+                    <button onClick={onClick} className={`flex items-center justify-center gap-2 transition ${isHelp ? 'w-8 h-8 rounded-full border border-slate-300 text-slate-500 hover:bg-slate-50' : `px-3 py-2 text-xs font-medium border rounded-lg ${className}`}`}>
                         {icon} {text}
                     </button>
                 )}
                 <div className="tooltip-text absolute top-full right-0 mt-2 px-3 py-1.5 bg-slate-800 text-white text-[10px] rounded shadow-tooltip whitespace-nowrap z-20">
-                    {text}
+                    {
+                        text === 'Add' ? 'Thêm sự kiện cá nhân' :
+                        text === 'Restore' ? 'Khôi phục dữ liệu từ file JSON' :
+                        text === 'Backup' ? 'Sao lưu dữ liệu về máy' :
+                        text === 'Print' ? 'In khổ A4 Ngang (Ẩn công cụ)' :
+                        text === '?' ? 'Hướng dẫn & Giải thích' : text
+                    }
                 </div>
             </div>
         );
 
         // --- MAIN APP ---
         function App() {
-            const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1)); // Start 2026
+            const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
             const [customEvents, setCustomEvents] = useState([]);
             const [notes, setNotes] = useState(() => Array(10).fill(null).map((_, i) => ({ id: i, text: '', done: false })));
             const [selectedEvent, setSelectedEvent] = useState(null);
@@ -238,14 +226,14 @@
 
             // Load/Save
             useEffect(() => {
-                const e = localStorage.getItem('planner_ev_uni');
-                const n = localStorage.getItem('planner_nt_uni');
+                const e = localStorage.getItem('planner_ev_final');
+                const n = localStorage.getItem('planner_nt_final');
                 if (e) setCustomEvents(JSON.parse(e));
                 if (n) setNotes(JSON.parse(n));
             }, []);
             useEffect(() => {
-                localStorage.setItem('planner_ev_uni', JSON.stringify(customEvents));
-                localStorage.setItem('planner_nt_uni', JSON.stringify(notes));
+                localStorage.setItem('planner_ev_final', JSON.stringify(customEvents));
+                localStorage.setItem('planner_nt_final', JSON.stringify(notes));
             }, [customEvents, notes]);
 
             // Filter
@@ -271,6 +259,13 @@
                 if(newDate.getFullYear() >= 2022 && newDate.getFullYear() <= 2032) setCurrentDate(newDate);
             };
 
+            const handleDeleteCustomEvent = (id) => { // FIX: Thêm logic xóa sự kiện cá nhân
+                if(window.confirm("Xác nhận xóa sự kiện cá nhân này?")) {
+                    setCustomEvents(customEvents.filter(e => e.id !== id));
+                    setSelectedEvent(null);
+                }
+            };
+
             const handleRestore = (e) => {
                 const file = e.target.files[0];
                 const reader = new FileReader();
@@ -279,14 +274,6 @@
                     catch(e){alert("File Error");}
                 };
                 reader.readAsText(file);
-            };
-
-            // Helpers
-            const getCatStyle = (cat) => CATEGORIES.find(c => c.id === cat)?.color || 'bg-gray-100 text-gray-600';
-            const getSmartBadge = (title) => {
-                let s = title.replace('[VN]', '').replace('[QT]', '').replace('[Nghỉ Lễ]', '').trim();
-                if(s.length > 18) return s.substring(0, 18) + '..';
-                return s;
             };
 
             // Calendar Grid
@@ -309,15 +296,15 @@
                             </div>
                             <div className="flex gap-2">
                                 <TooltipBtn icon={<Icons.Plus />} text="Add" onClick={() => setIsAddModalOpen(true)} className="text-slate-600 hover:bg-slate-50 border-slate-200" />
-                                <TooltipBtn icon={<Icons.Upload />} text="Restore" onClick={handleRestore} label={true} className="text-slate-600 hover:bg-slate-50 border-slate-200" />
-                                <TooltipBtn icon={<Icons.Save />} text="Backup" onClick={() => {
-                                    const blob = new Blob([JSON.stringify({events: customEvents, notes})], {type:'application/json'});
-                                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download=`BSC_Planner_${year}.json`; a.click();
-                                }} className="text-slate-600 hover:bg-slate-50 border-slate-200" />
+                                <div className="flex gap-1.5 border border-slate-200 p-1 rounded-lg bg-slate-50">
+                                    <TooltipBtn icon={<Icons.Upload />} text="Restore" onClick={handleRestore} label={true} className="text-slate-600 hover:bg-white border-transparent" />
+                                    <TooltipBtn icon={<Icons.Save />} text="Backup" onClick={() => {
+                                        const blob = new Blob([JSON.stringify({events: customEvents, notes})], {type:'application/json'});
+                                        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download=`BSC_Planner_${year}.json`; a.click();
+                                    }} className="text-slate-600 hover:bg-white border-transparent" />
+                                </div>
                                 <TooltipBtn icon={<Icons.Print />} text="Print" onClick={() => window.print()} className="bg-[#005F40] text-white hover:bg-[#004d34] border-transparent" />
-                                <button onClick={() => setIsHelpOpen(true)} className="flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 text-slate-500 hover:bg-slate-50 transition ml-2">
-                                    <Icons.Help />
-                                </button>
+                                <TooltipBtn icon={<Icons.Help />} text="?" onClick={() => setIsHelpOpen(true)} isHelp={true} />
                             </div>
                         </header>
 
@@ -375,7 +362,7 @@
                                                 </div>
                                                 <div className="flex flex-col gap-0.5 overflow-hidden">
                                                     {evs.filter(e => e.category !== 'holiday').slice(0, 4).map(ev => (
-                                                        <div key={ev.title} onClick={() => setSelectedEvent({...ev, lunarStr: `${lunar.day}/${lunar.month}`})} className={`truncate text-[9px] px-1 rounded-sm border-l-2 cursor-pointer font-medium leading-tight py-0.5 ${getCatStyle(ev.category)}`}>
+                                                        <div key={ev.title} onClick={() => setSelectedEvent({...ev, lunarStr: `${lunar.day}/${lunar.month}`, id: ev.id})} className={`truncate text-[9px] px-1 rounded-sm border-l-2 cursor-pointer font-medium leading-tight py-0.5 ${getCatStyle(ev.category)}`}>
                                                             {getSmartBadge(ev.title)}
                                                         </div>
                                                     ))}
@@ -392,13 +379,16 @@
                             {/* NOTES */}
                             <div className="flex-1 bg-[#FDFDFD] flex flex-col relative print:border-none">
                                 <div className="px-8 pt-6 pb-4 flex justify-between items-end">
-                                    <div><h3 className="font-serif font-bold text-xl text-slate-800">Notes</h3><p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Priorities</p></div>
+                                    <div><h3 className="font-serif font-bold text-xl text-slate-800">Notes</h3><p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Priority & Tasks</p></div>
                                     <button onClick={() => setNotes([{id: Date.now(), text:'', done:false}, ...notes])} className="no-print p-1.5 bg-slate-100 hover:bg-[#005F40] hover:text-white rounded transition"><Icons.Plus /></button>
                                 </div>
                                 <div className="flex-1 lined-paper px-8 overflow-y-auto">
                                     {notes.map(note => (
-                                        <div key={note.id} className="group flex items-center w-full h-[36px] gap-3 relative">
+                                        <div key={note.id} className="group note-line flex items-center w-full h-[36px] gap-3 relative">
+                                            {/* Checkbox (Web vs Print) */}
                                             <input type="checkbox" checked={note.done} onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, done:e.target.checked} : n))} className="custom-checkbox no-print" />
+                                            <span className="print-checkbox hidden print:inline-block"></span>
+                                            
                                             <input className={`lined-input ${note.done ? 'line-through text-slate-300' : ''}`} value={note.text} onChange={e => setNotes(notes.map(n => n.id===note.id ? {...n, text:e.target.value} : n))} />
                                             <button onClick={() => setNotes(notes.filter(n => n.id !== note.id))} className="no-print absolute right-0 opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 px-2"><Icons.Trash /></button>
                                         </div>
@@ -423,7 +413,18 @@
                                         <div className="flex-1 p-2 bg-slate-50 rounded border border-slate-100 text-center"><div className="text-[10px] text-slate-400 uppercase">Ngày</div><div className="font-bold text-slate-800">{selectedEvent.date}</div></div>
                                         <div className="flex-1 p-2 bg-[#D4AF37]/10 rounded border border-[#D4AF37]/30 text-center"><div className="text-[10px] text-[#B4941F] uppercase">Âm Lịch</div><div className="font-bold text-[#D4AF37] font-serif">{selectedEvent.lunarStr}</div></div>
                                     </div>
-                                    <button onClick={() => { setNotes([{id: Date.now(), text: `[${selectedEvent.date}] ${selectedEvent.title}`, done: false}, ...notes]); setSelectedEvent(null); }} className="w-full py-2 bg-[#005F40] text-white rounded-lg text-sm font-medium hover:bg-[#004d34] shadow-lg shadow-[#005F40]/20">+ Add to Notes</button>
+                                    <p className="text-sm text-slate-600 font-serif mb-6">{selectedEvent.desc || selectedEvent.description}</p>
+                                    
+                                    <div className="flex gap-2">
+                                        <button onClick={() => { setNotes([{id: Date.now(), text: `[${selectedEvent.date}] ${selectedEvent.title}`, done: false}, ...notes]); setSelectedEvent(null); }} className="flex-1 py-2 bg-[#005F40] text-white rounded-lg text-sm font-medium hover:bg-[#004d34] shadow-lg shadow-[#005F40]/20">+ Add to Notes</button>
+                                        
+                                        {/* FIX: Nút xóa chỉ hiện cho sự kiện cá nhân */}
+                                        {selectedEvent.category === 'personal' && (
+                                            <button onClick={() => handleDeleteCustomEvent(selectedEvent.id)} className="px-3 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200">
+                                                <Icons.Trash /> Xóa
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -437,7 +438,7 @@
                                 <div className="space-y-3">
                                     <input type="date" className="w-full border p-2 rounded text-sm font-sans" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
                                     <input type="text" className="w-full border p-2 rounded text-sm font-sans" placeholder="Nội dung..." value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} />
-                                    <div className="flex gap-2 pt-2"><button onClick={() => setIsAddModalOpen(false)} className="flex-1 py-2 border rounded text-sm hover:bg-slate-50">Hủy</button><button onClick={() => { if(!newEvent.title || !newEvent.date) return; setCustomEvents([...customEvents, { id: 'c-'+Date.now(), date: newEvent.date, title: newEvent.title, description: 'Personal', category: 'personal' }]); setIsAddModalOpen(false); setNewEvent({ date: '', title: '' }); }} className="flex-1 py-2 bg-[#005F40] text-white rounded text-sm hover:bg-[#004d34]">Lưu</button></div>
+                                    <div className="flex gap-2 pt-2"><button onClick={() => setIsAddModalOpen(false)} className="flex-1 py-2 border rounded text-sm hover:bg-slate-50">Hủy</button><button onClick={() => { if(!newEvent.title || !newEvent.date) return; setCustomEvents([...customEvents, { id: 'c-'+Date.now(), date: newEvent.date, title: newEvent.title, category: 'personal' }]); setIsAddModalOpen(false); setNewEvent({ date: '', title: '' }); }} className="flex-1 py-2 bg-[#005F40] text-white rounded text-sm hover:bg-[#004d34]">Lưu</button></div>
                                 </div>
                             </div>
                         </div>
@@ -446,12 +447,9 @@
                     {/* HELP MODAL */}
                     {isHelpOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 no-print" onClick={() => setIsHelpOpen(false)}>
-                            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-6 animate-[fadeIn_0.15s_ease-out]" onClick={e => e.stopPropagation()}>
+                            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-6" onClick={e => e.stopPropagation()}>
                                 <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><Icons.Help /></div>
-                                        <div><h2 className="font-serif font-bold text-xl text-slate-800">Hướng dẫn sử dụng</h2><p className="text-xs text-slate-400">BSC Analyst Planner</p></div>
-                                    </div>
+                                    <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><Icons.Help /></div><div><h2 className="font-serif font-bold text-xl text-slate-800">Hướng dẫn sử dụng</h2><p className="text-xs text-slate-400">BSC Analyst Planner</p></div></div>
                                     <button onClick={() => setIsHelpOpen(false)} className="text-slate-400 hover:text-slate-800"><Icons.X /></button>
                                 </div>
                                 <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
@@ -462,19 +460,19 @@
                                             <div className="flex items-center gap-2 p-2 bg-indigo-50 rounded border border-indigo-100"><div className="w-3 h-3 rounded-full bg-indigo-500"></div><span>Vĩ mô Thế giới (FED/ECB)</span></div>
                                             <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded border border-emerald-100"><div className="w-3 h-3 rounded-full bg-emerald-500"></div><span>Vĩ mô VN (GDP/CPI)</span></div>
                                             <div className="flex items-center gap-2 p-2 bg-amber-50 rounded border border-amber-100"><div className="w-3 h-3 rounded-full bg-amber-500"></div><span>Phái sinh (Đáo hạn)</span></div>
+                                            <div className="flex items-center gap-2 p-2 bg-slate-50 rounded border border-slate-100"><div className="w-3 h-3 rounded-full bg-slate-500"></div><span>ETF (Review/Cut-off)</span></div>
+                                            <div className="flex items-center gap-2 p-2 bg-sky-50 rounded border border-sky-100"><div className="w-3 h-3 rounded-full bg-sky-500"></div><span>Cá nhân (Bạn tự thêm)</span></div>
+                                            <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded border border-yellow-100"><div className="w-3 h-3 rounded-full bg-bsc-gold"></div><span>Ngày <span className="font-bold">Mùng 1 & Rằm</span> (Âm lịch)</span></div>
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-sm text-slate-800 mb-2 uppercase tracking-wider">2. Chức năng chính</h3>
+                                        <h3 className="font-bold text-sm text-slate-800 mb-2 uppercase tracking-wider">2. Quản lý dữ liệu & Note</h3>
                                         <ul className="text-sm text-slate-600 space-y-2 list-disc pl-4">
-                                            <li><b>Lịch Âm:</b> Ngày <span className="text-[#D4AF37] font-bold">Mùng 1 & Rằm</span> sẽ có màu vàng và dấu chấm tròn.</li>
                                             <li><b>Filter:</b> Bấm vào các viên thuốc (Pills) trên đầu lịch để ẩn/hiện từng loại sự kiện.</li>
-                                            <li><b>Backup/Restore:</b> Dùng để lưu dữ liệu khi chuyển máy (File JSON).</li>
-                                            <li><b>In ấn (Print):</b> Tự động ẩn thanh công cụ và tối ưu cho khổ giấy A4 Ngang.</li>
+                                            <li><b>Backup/Restore:</b> File JSON chứa dữ liệu *Cá nhân* và *Notes* của bạn. Hãy backup thường xuyên.</li>
+                                            <li><b>In ấn (Print):</b> Tự động ẩn thanh công cụ, các ô Note sẽ có **ô vuông để bạn tích bút bi vào**.</li>
+                                            <li><b>Xóa Sự kiện:</b> Chỉ có thể xóa các sự kiện có tag **Cá nhân** (Personal) trong Modal Chi tiết.</li>
                                         </ul>
-                                    </div>
-                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                        <p className="text-xs text-slate-500 italic">💡 <b>Mẹo Note:</b> Di chuột vào dòng note để hiện nút Xóa. Khi in ra giấy, phần note sẽ tự động thêm dòng kẻ mờ để bạn viết tay.</p>
                                     </div>
                                 </div>
                             </div>
