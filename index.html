@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSC Multi-Year Planner (Final Print Edition)</title>
+    <title>BSC Multi-Year Planner (Final Complete)</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -37,10 +37,10 @@
     <style>
         body { background-color: #F8FAFC; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         
-        /* Note Lined Paper - Màn hình thường */
+        /* Note Lined Paper */
         .lined-paper {
             background-color: #FDFDFD;
-            background-image: linear-gradient(#E2E8F0 1px, transparent 1px);
+            background-image: linear-gradient(#F1F5F9 1px, transparent 1px); /* Siêu mờ */
             background-size: 100% 36px; line-height: 36px; 
         }
         .lined-input {
@@ -60,20 +60,16 @@
         }
         .custom-checkbox:checked::before { transform: scale(1); }
 
-        /* Checkbox cho IN ẤN (Print Only) */
+        /* Print Checkbox */
         .print-checkbox {
-            display: none; /* Ẩn trên web */
-            width: 14px; height: 14px; 
-            border: 1px solid #94A3B8; 
-            background: white;
-            margin-right: 8px;
-            flex-shrink: 0;
+            display: none; width: 14px; height: 14px; border: 1px solid #94A3B8; background: white; margin-right: 8px; flex-shrink: 0;
         }
 
-        /* Tooltip & UI Elements */
+        /* Tooltip */
         .tooltip-group:hover .tooltip-text { visibility: visible; opacity: 1; transform: translateY(0); }
         .tooltip-text { visibility: hidden; opacity: 0; transform: translateY(-4px); transition: all 0.2s; }
         
+        /* Filter Pills */
         .filter-pill { transition: all 0.2s; cursor: pointer; user-select: none; }
         .filter-pill.active { opacity: 1; transform: scale(1); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .filter-pill.inactive { opacity: 0.5; transform: scale(0.98); background-color: #F1F5F9 !important; color: #94A3B8 !important; border-color: #E2E8F0 !important; }
@@ -86,12 +82,9 @@
                 width: 100vw; height: 100vh; border: none; box-shadow: none; 
                 border-radius: 0; padding: 5mm 10mm; background: white !important;
             }
-            /* Dòng kẻ mờ hơn khi in (#F1F5F9) */
             .lined-paper { background-image: linear-gradient(#F1F5F9 1px, transparent 1px) !important; }
-            /* Hiện ô vuông để tích */
             .print-checkbox { display: inline-block !important; }
-            .custom-checkbox { display: none !important; } /* Ẩn checkbox web đi */
-            /* Đảm bảo flexbox hoạt động tốt khi in */
+            .custom-checkbox { display: none !important; }
             .note-row { display: flex !important; align-items: center !important; }
         }
     </style>
@@ -105,7 +98,7 @@
         // --- ASSETS ---
         const LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABQBAMAAAAgtay6AAAAJFBMVEVHcEwmYakyZ6MnXKpIa5owX6bcpTwSq5ImXKspXKkRr5D8syaoW6H2AAAACHRSTlMAfEG4Ftu/ypTeOakAAAHmSURBVHic7ZVBTsQgFIafTkxKZjPqBRpPoPESLj0SmpjgjrjrrLqeG0x6OV+BR4ECM0Cixsy/aPnp+/hpYRiAi/6ottOsSnhqgLct8NQAb1vgqQHetsAKHFAHVE3wsRK2wRXwElwBL8GV8LEWJv0mvG+BDw3wvgU+BPCt0p1X1Hvuwbb2ISxI3HR0ytHjjftMs2MENhWdcS5Lz8JgBxa+j7gw2IW5ExxzsPrWAZxyguAxAQsTxYHK9V1ddwaGAN7RIBp+9Jwws+caHqNwZ8vBlhMECwx5mIMtp6Fm96HgMQ5DDjaN1bZewcKD3zx4TMDLO/fG8mUeYGA4Cdt97cAJGZg+rFrTvgAm9dbyYpjT7O3UC2DtXxxXMm2/oxDmXg+vgum9z18qcBd4Uwp3DqyH4ufDejc7ixTZnqdhvrgu+GGUwqIMFhEY7+85uFuVr4+hJGwXxx7YfHUAxmBnf6ryTzqB3aP39TQMOZeFab4pl4V9H3EZWA/eeY5lg1N/7nEX6lnL63vy3H2CvOiHNUgGA+AFm7MZrkDijQ0S29iFYtRYSfYMJArgGu9YiDCywOYBGTwqGL1MJWO1pGTQyQqWJhkGFp+2BIKZToZ5IjYZ+2U+eQA1skr+Ul9Aw/pVmbxJvfNF/1/falRpmEp4VcUAAAAASUVORK5CYII=";
 
-        // --- LUNAR DATA 2022-2032 ---
+        // --- LUNAR DATA ENGINE (2022-2032) ---
         const LUNAR_ANCHORS = [
             {s:'2022-01-03',m:12},{s:'2022-02-01',m:1},{s:'2022-03-03',m:2},{s:'2022-04-01',m:3},{s:'2022-05-01',m:4},{s:'2022-05-30',m:5},{s:'2022-06-29',m:6},{s:'2022-07-29',m:7},{s:'2022-08-27',m:8},{s:'2022-09-26',m:9},{s:'2022-10-25',m:10},{s:'2022-11-24',m:11},{s:'2022-12-23',m:12},
             {s:'2023-01-22',m:1},{s:'2023-02-20',m:2},{s:'2023-03-22',m:2},{s:'2023-04-20',m:3},{s:'2023-05-19',m:4},{s:'2023-06-18',m:5},{s:'2023-07-18',m:6},{s:'2023-08-16',m:7},{s:'2023-09-15',m:8},{s:'2023-10-15',m:9},{s:'2023-11-13',m:10},{s:'2023-12-13',m:11},
@@ -134,14 +127,96 @@
             return { day: diffDays + 1, month: anchor.m };
         }
 
-        // --- EVENTS ENGINE ---
+        // --- FULL EVENTS 2026 (Restored) ---
         const EVENTS_2026 = [
-            {"date":"2026-01-01","title":"[Nghỉ Lễ] Tết Dương Lịch","category":"holiday"}, {"date":"2026-01-06","title":"[VN] GSO: Báo cáo KT-XH","category":"macro_vn"}, {"date":"2026-01-15","title":"[VN] Futures Đáo hạn T1","category":"derivatives"}, {"date":"2026-01-27","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-02-17","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-18","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-19","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-20","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-02-21","title":"[Nghỉ Lễ] Tết Nguyên Đán","category":"holiday"}, {"date":"2026-03-04","title":"[QT] FTSE: Review","category":"etf"}, {"date":"2026-03-17","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-03-19","title":"[VN] Futures Đáo hạn T3","category":"derivatives"}, {"date":"2026-04-27","title":"[Nghỉ Lễ] Giỗ Tổ Hùng Vương","category":"holiday"}, {"date":"2026-04-30","title":"[Nghỉ Lễ] Giải phóng MN","category":"holiday"}, {"date":"2026-05-01","title":"[Nghỉ Lễ] Quốc tế Lao động","category":"holiday"}, {"date":"2026-06-16","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-07-28","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-09-02","title":"[Nghỉ Lễ] Quốc khánh","category":"holiday"}, {"date":"2026-09-03","title":"[Nghỉ Lễ] Quốc khánh (bù)","category":"holiday"}, {"date":"2026-09-15","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-10-27","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"}, {"date":"2026-12-08","title":"[QT] FED: Họp CS Tiền tệ","category":"macro_global"},
-            // Dữ liệu sẽ đầy đủ khi bạn import file json
+            {"date": "2026-01-01", "title": "[Nghỉ Lễ] Tết Dương Lịch 2026", "category": "holiday", "description": "Nghỉ lễ toàn quốc"},
+            {"date": "2026-01-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-01-15", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 1"},
+            {"date": "2026-01-19", "title": "[VN] ETF: (A) Cập nhật TT", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-01-21", "title": "[VN] ETF: (A) Xem xét định kỳ", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-01-27", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-02-02", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-02-04", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-02-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-02-16", "title": "[Nghỉ Lễ] Tết Nguyên Đán (Dự kiến)", "category": "holiday", "description": "Thị trường nghỉ"},
+            {"date": "2026-02-17", "title": "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 1)", "category": "holiday", "description": "Mùng 1 Tết Bính Ngọ"},
+            {"date": "2026-02-18", "title": "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 2)", "category": "holiday", "description": "Mùng 2 Tết"},
+            {"date": "2026-02-19", "title": "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 3)", "category": "holiday", "description": "Mùng 3 Tết"},
+            {"date": "2026-02-20", "title": "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 4)", "category": "holiday", "description": "Mùng 4 Tết"},
+            {"date": "2026-02-21", "title": "[Nghỉ Lễ] Tết Nguyên Đán (Mùng 5)", "category": "holiday", "description": "Mùng 5 Tết"},
+            {"date": "2026-02-27", "title": "[QT] ETF Ngoại: Cut-off FTSE", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-02-27", "title": "[VN] ETF: (A) Danh mục mới", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-03-05", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-03-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-03-13", "title": "[VN] ETF: (A) Danh mục mới", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-03-17", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-03-19", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 3"},
+            {"date": "2026-03-23", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-03-30", "title": "[VN] FTSE: Interim Review (Nâng hạng)", "category": "personal", "description": "Quan trọng: Nâng hạng thị trường"},
+            {"date": "2026-03-31", "title": "[VN] ETF Nội: Cut-off Q2", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-04-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-04-15", "title": "[VN] ETF: (A) Cập nhật VNX", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-04-16", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-04-16", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 4"},
+            {"date": "2026-04-20", "title": "[VN] ETF: (A) Xem xét định kỳ", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-04-26", "title": "[Nghỉ Lễ] Giỗ Tổ Hùng Vương (10/3)", "category": "holiday", "description": "Nghỉ bù vào Thứ 2"},
+            {"date": "2026-04-28", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-04-30", "title": "[Nghỉ Lễ] Giải phóng MN", "category": "holiday", "description": "Nghỉ Lễ"},
+            {"date": "2026-05-01", "title": "[Nghỉ Lễ] Quốc tế Lao động", "category": "holiday", "description": "Nghỉ Lễ"},
+            {"date": "2026-05-04", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-05-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-05-21", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 5"},
+            {"date": "2026-05-29", "title": "[QT] ETF Ngoại: Cut-off", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-06-04", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-06-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-06-12", "title": "[VN] ETF: (A) Danh mục mới", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-06-16", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-06-18", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 6"},
+            {"date": "2026-06-22", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-06-30", "title": "[VN] ETF Nội: Cut-off Q3", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-07-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-07-15", "title": "[VN] ETF: (A) Xem xét định kỳ", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-07-16", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-07-16", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 7"},
+            {"date": "2026-07-20", "title": "[VN] ETF: (A) Cập nhật VNFIN LEAD", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-07-28", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-08-03", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-08-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-08-20", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 8"},
+            {"date": "2026-08-28", "title": "[QT] ETF Ngoại: Cut-off", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-08-31", "title": "[QT] ETF Ngoại: Cut-off MV", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-09-02", "title": "[Nghỉ Lễ] Quốc Khánh 2/9", "category": "holiday", "description": "Nghỉ lễ"},
+            {"date": "2026-09-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-09-10", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-09-11", "title": "[VN] ETF: (A) Danh mục mới", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-09-15", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-09-17", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 9"},
+            {"date": "2026-09-21", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-09-21", "title": "[VN] FTSE: NÂNG HẠNG (Hiệu lực)", "category": "personal", "description": "Sự kiện đặc biệt: Chính thức nâng hạng"},
+            {"date": "2026-09-30", "title": "[VN] ETF Nội: Cut-off Q4", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-10-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-10-15", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 10"},
+            {"date": "2026-10-19", "title": "[VN] ETF: (A) Xem xét định kỳ", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-10-21", "title": "[VN] ETF: (A) Cập nhật TT", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-10-27", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-10-28", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-11-02", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Nội"},
+            {"date": "2026-11-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-11-19", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 11"},
+            {"date": "2026-11-27", "title": "[QT] ETF Ngoại: Cut-off", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-11-30", "title": "[QT] ETF Ngoại: Cut-off MV", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-12-06", "title": "[VN] GSO: Báo cáo KT-XH", "category": "macro_vn", "description": "Nguồn: Tổng cục Thống kê"},
+            {"date": "2026-12-08", "title": "[QT] FED: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: FED"},
+            {"date": "2026-12-10", "title": "[QT] ECB: Họp CS Tiền tệ", "category": "macro_global", "description": "Nguồn: ECB"},
+            {"date": "2026-12-11", "title": "[VN] ETF: (A) Danh mục mới", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-12-17", "title": "[VN] Futures VN30 đáo hạn", "category": "derivatives", "description": "Đáo hạn Phái sinh Tháng 12"},
+            {"date": "2026-12-21", "title": "[VN] ETF: (E) Hiệu lực", "category": "etf", "description": "Nguồn: ETF Ngoại"},
+            {"date": "2026-12-31", "title": "[VN] ETF Nội: Cut-off Q1/2027", "category": "etf", "description": "Nguồn: ETF Nội"}
         ];
 
         function generateAutoEvents(year) {
             const evs = [];
+            // Derivatives: 3rd Thursday
             for(let m=0; m<12; m++) {
                 let d = new Date(year, m, 1); let count = 0;
                 while(d.getMonth() === m) {
@@ -149,10 +224,12 @@
                     d.setDate(d.getDate() + 1);
                 }
             }
+            // Holidays
             evs.push({date:`${year}-01-01`, title:"[Nghỉ Lễ] Tết Dương Lịch", category:'holiday'});
             evs.push({date:`${year}-04-30`, title:"[Nghỉ Lễ] Giải phóng MN", category:'holiday'});
             evs.push({date:`${year}-05-01`, title:"[Nghỉ Lễ] Quốc tế Lao động", category:'holiday'});
             evs.push({date:`${year}-09-02`, title:"[Nghỉ Lễ] Quốc khánh", category:'holiday'});
+            // Lunar Holidays
             let start = new Date(year, 0, 1);
             let end = new Date(year, 11, 31);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
@@ -370,6 +447,8 @@
                                         <div className="flex-1 p-2 bg-slate-50 rounded border border-slate-100 text-center"><div className="text-[10px] text-slate-400 uppercase">Ngày</div><div className="font-bold text-slate-800">{selectedEvent.date}</div></div>
                                         <div className="flex-1 p-2 bg-[#D4AF37]/10 rounded border border-[#D4AF37]/30 text-center"><div className="text-[10px] text-[#B4941F] uppercase">Âm Lịch</div><div className="font-bold text-[#D4AF37] font-serif">{selectedEvent.lunarStr}</div></div>
                                     </div>
+                                    <p className="text-sm text-slate-600 font-serif mb-6">{selectedEvent.desc || selectedEvent.description}</p>
+                                    
                                     <div className="flex gap-2">
                                         <button onClick={() => { setNotes([{id: Date.now(), text: `[${selectedEvent.date}] ${selectedEvent.title}`, done: false}, ...notes]); setSelectedEvent(null); }} className="flex-1 py-2 bg-[#005F40] text-white rounded-lg text-sm font-medium hover:bg-[#004d34] shadow-lg shadow-[#005F40]/20">+ Add to Notes</button>
                                         {selectedEvent.category === 'personal' && <button onClick={() => handleDeleteCustomEvent(selectedEvent.id)} className="px-3 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200"><Icons.Trash /> Xóa</button>}
